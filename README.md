@@ -13,7 +13,7 @@ Java and coordinate transformations have a complicated past...
 
 Using the (C/C++) PROJ stack in Java, so we can "level" the internal playing
 field in how transformations are done. In other words, only through the use of
-PROJ. If this is done through pyproj, georust, and so on. We can standardise the
+PROJ. So this is done similarly like pyproj, georust, and so on. We can standardise the
 used configruation and parameters so we have minimal deviations in our
 transformtion, regardless of programming language.
 
