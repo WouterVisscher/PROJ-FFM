@@ -51,6 +51,13 @@ tar -xvf openjdk-25-*
   /usr/include/proj.h
 ```
 
+## mvn
+
+```sh
+mvn clean install
+java -jar target/transformer-1.0-SNAPSHOT.jar
+```
+
 ## compare
 
 Direct proj calc
