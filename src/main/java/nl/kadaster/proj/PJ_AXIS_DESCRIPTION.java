@@ -59,7 +59,7 @@ public class PJ_AXIS_DESCRIPTION {
         return name$LAYOUT;
     }
 
-    private static final long name$OFFSET = 0;
+    private static final long name$OFFSET = $LAYOUT.byteOffset(groupElement("name"));
 
     /**
      * Offset for field:
@@ -103,7 +103,7 @@ public class PJ_AXIS_DESCRIPTION {
         return abbreviation$LAYOUT;
     }
 
-    private static final long abbreviation$OFFSET = 8;
+    private static final long abbreviation$OFFSET = $LAYOUT.byteOffset(groupElement("abbreviation"));
 
     /**
      * Offset for field:
@@ -147,7 +147,7 @@ public class PJ_AXIS_DESCRIPTION {
         return direction$LAYOUT;
     }
 
-    private static final long direction$OFFSET = 16;
+    private static final long direction$OFFSET = $LAYOUT.byteOffset(groupElement("direction"));
 
     /**
      * Offset for field:
@@ -191,7 +191,7 @@ public class PJ_AXIS_DESCRIPTION {
         return unit_name$LAYOUT;
     }
 
-    private static final long unit_name$OFFSET = 24;
+    private static final long unit_name$OFFSET = $LAYOUT.byteOffset(groupElement("unit_name"));
 
     /**
      * Offset for field:
@@ -235,7 +235,7 @@ public class PJ_AXIS_DESCRIPTION {
         return unit_conv_factor$LAYOUT;
     }
 
-    private static final long unit_conv_factor$OFFSET = 32;
+    private static final long unit_conv_factor$OFFSET = $LAYOUT.byteOffset(groupElement("unit_conv_factor"));
 
     /**
      * Offset for field:
@@ -279,7 +279,7 @@ public class PJ_AXIS_DESCRIPTION {
         return unit_type$LAYOUT;
     }
 
-    private static final long unit_type$OFFSET = 40;
+    private static final long unit_type$OFFSET = $LAYOUT.byteOffset(groupElement("unit_type"));
 
     /**
      * Offset for field:

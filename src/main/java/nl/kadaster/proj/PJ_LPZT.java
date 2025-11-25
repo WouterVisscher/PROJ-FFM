@@ -54,7 +54,7 @@ public class PJ_LPZT {
         return lam$LAYOUT;
     }
 
-    private static final long lam$OFFSET = 0;
+    private static final long lam$OFFSET = $LAYOUT.byteOffset(groupElement("lam"));
 
     /**
      * Offset for field:
@@ -98,7 +98,7 @@ public class PJ_LPZT {
         return phi$LAYOUT;
     }
 
-    private static final long phi$OFFSET = 8;
+    private static final long phi$OFFSET = $LAYOUT.byteOffset(groupElement("phi"));
 
     /**
      * Offset for field:
@@ -142,7 +142,7 @@ public class PJ_LPZT {
         return z$LAYOUT;
     }
 
-    private static final long z$OFFSET = 16;
+    private static final long z$OFFSET = $LAYOUT.byteOffset(groupElement("z"));
 
     /**
      * Offset for field:
@@ -186,7 +186,7 @@ public class PJ_LPZT {
         return t$LAYOUT;
     }
 
-    private static final long t$OFFSET = 24;
+    private static final long t$OFFSET = $LAYOUT.byteOffset(groupElement("t"));
 
     /**
      * Offset for field:

@@ -45,10 +45,10 @@ tar -xvf openjdk-25-*
 ```sh
 ./jextract-25/bin/jextract \
   --include-dir /usr/local/include \
-  --output src \
-  --target-package org.jextract.proj \
+  --output src/main/java \
+  --target-package nl.kadaster.proj \
   --library proj \
-  /usr/local/include/proj.h
+  /usr/include/proj.h
 ```
 
 ## compare

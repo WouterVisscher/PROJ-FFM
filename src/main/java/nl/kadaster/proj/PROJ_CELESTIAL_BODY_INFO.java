@@ -50,7 +50,7 @@ public class PROJ_CELESTIAL_BODY_INFO {
         return auth_name$LAYOUT;
     }
 
-    private static final long auth_name$OFFSET = 0;
+    private static final long auth_name$OFFSET = $LAYOUT.byteOffset(groupElement("auth_name"));
 
     /**
      * Offset for field:
@@ -94,7 +94,7 @@ public class PROJ_CELESTIAL_BODY_INFO {
         return name$LAYOUT;
     }
 
-    private static final long name$OFFSET = 8;
+    private static final long name$OFFSET = $LAYOUT.byteOffset(groupElement("name"));
 
     /**
      * Offset for field:

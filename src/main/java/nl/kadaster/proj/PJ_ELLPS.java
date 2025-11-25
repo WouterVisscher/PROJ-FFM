@@ -54,7 +54,7 @@ public class PJ_ELLPS {
         return id$LAYOUT;
     }
 
-    private static final long id$OFFSET = 0;
+    private static final long id$OFFSET = $LAYOUT.byteOffset(groupElement("id"));
 
     /**
      * Offset for field:
@@ -98,7 +98,7 @@ public class PJ_ELLPS {
         return major$LAYOUT;
     }
 
-    private static final long major$OFFSET = 8;
+    private static final long major$OFFSET = $LAYOUT.byteOffset(groupElement("major"));
 
     /**
      * Offset for field:
@@ -142,7 +142,7 @@ public class PJ_ELLPS {
         return ell$LAYOUT;
     }
 
-    private static final long ell$OFFSET = 16;
+    private static final long ell$OFFSET = $LAYOUT.byteOffset(groupElement("ell"));
 
     /**
      * Offset for field:
@@ -186,7 +186,7 @@ public class PJ_ELLPS {
         return name$LAYOUT;
     }
 
-    private static final long name$OFFSET = 24;
+    private static final long name$OFFSET = $LAYOUT.byteOffset(groupElement("name"));
 
     /**
      * Offset for field:

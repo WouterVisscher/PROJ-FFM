@@ -52,7 +52,7 @@ public class PJ_ENU {
         return e$LAYOUT;
     }
 
-    private static final long e$OFFSET = 0;
+    private static final long e$OFFSET = $LAYOUT.byteOffset(groupElement("e"));
 
     /**
      * Offset for field:
@@ -96,7 +96,7 @@ public class PJ_ENU {
         return n$LAYOUT;
     }
 
-    private static final long n$OFFSET = 8;
+    private static final long n$OFFSET = $LAYOUT.byteOffset(groupElement("n"));
 
     /**
      * Offset for field:
@@ -140,7 +140,7 @@ public class PJ_ENU {
         return u$LAYOUT;
     }
 
-    private static final long u$OFFSET = 16;
+    private static final long u$OFFSET = $LAYOUT.byteOffset(groupElement("u"));
 
     /**
      * Offset for field:

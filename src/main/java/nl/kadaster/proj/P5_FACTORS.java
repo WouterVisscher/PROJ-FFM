@@ -70,7 +70,7 @@ public class P5_FACTORS {
         return meridional_scale$LAYOUT;
     }
 
-    private static final long meridional_scale$OFFSET = 0;
+    private static final long meridional_scale$OFFSET = $LAYOUT.byteOffset(groupElement("meridional_scale"));
 
     /**
      * Offset for field:
@@ -114,7 +114,7 @@ public class P5_FACTORS {
         return parallel_scale$LAYOUT;
     }
 
-    private static final long parallel_scale$OFFSET = 8;
+    private static final long parallel_scale$OFFSET = $LAYOUT.byteOffset(groupElement("parallel_scale"));
 
     /**
      * Offset for field:
@@ -158,7 +158,7 @@ public class P5_FACTORS {
         return areal_scale$LAYOUT;
     }
 
-    private static final long areal_scale$OFFSET = 16;
+    private static final long areal_scale$OFFSET = $LAYOUT.byteOffset(groupElement("areal_scale"));
 
     /**
      * Offset for field:
@@ -202,7 +202,7 @@ public class P5_FACTORS {
         return angular_distortion$LAYOUT;
     }
 
-    private static final long angular_distortion$OFFSET = 24;
+    private static final long angular_distortion$OFFSET = $LAYOUT.byteOffset(groupElement("angular_distortion"));
 
     /**
      * Offset for field:
@@ -246,7 +246,7 @@ public class P5_FACTORS {
         return meridian_parallel_angle$LAYOUT;
     }
 
-    private static final long meridian_parallel_angle$OFFSET = 32;
+    private static final long meridian_parallel_angle$OFFSET = $LAYOUT.byteOffset(groupElement("meridian_parallel_angle"));
 
     /**
      * Offset for field:
@@ -290,7 +290,7 @@ public class P5_FACTORS {
         return meridian_convergence$LAYOUT;
     }
 
-    private static final long meridian_convergence$OFFSET = 40;
+    private static final long meridian_convergence$OFFSET = $LAYOUT.byteOffset(groupElement("meridian_convergence"));
 
     /**
      * Offset for field:
@@ -334,7 +334,7 @@ public class P5_FACTORS {
         return tissot_semimajor$LAYOUT;
     }
 
-    private static final long tissot_semimajor$OFFSET = 48;
+    private static final long tissot_semimajor$OFFSET = $LAYOUT.byteOffset(groupElement("tissot_semimajor"));
 
     /**
      * Offset for field:
@@ -378,7 +378,7 @@ public class P5_FACTORS {
         return tissot_semiminor$LAYOUT;
     }
 
-    private static final long tissot_semiminor$OFFSET = 56;
+    private static final long tissot_semiminor$OFFSET = $LAYOUT.byteOffset(groupElement("tissot_semiminor"));
 
     /**
      * Offset for field:
@@ -422,7 +422,7 @@ public class P5_FACTORS {
         return dx_dlam$LAYOUT;
     }
 
-    private static final long dx_dlam$OFFSET = 64;
+    private static final long dx_dlam$OFFSET = $LAYOUT.byteOffset(groupElement("dx_dlam"));
 
     /**
      * Offset for field:
@@ -466,7 +466,7 @@ public class P5_FACTORS {
         return dx_dphi$LAYOUT;
     }
 
-    private static final long dx_dphi$OFFSET = 72;
+    private static final long dx_dphi$OFFSET = $LAYOUT.byteOffset(groupElement("dx_dphi"));
 
     /**
      * Offset for field:
@@ -510,7 +510,7 @@ public class P5_FACTORS {
         return dy_dlam$LAYOUT;
     }
 
-    private static final long dy_dlam$OFFSET = 80;
+    private static final long dy_dlam$OFFSET = $LAYOUT.byteOffset(groupElement("dy_dlam"));
 
     /**
      * Offset for field:
@@ -554,7 +554,7 @@ public class P5_FACTORS {
         return dy_dphi$LAYOUT;
     }
 
-    private static final long dy_dphi$OFFSET = 88;
+    private static final long dy_dphi$OFFSET = $LAYOUT.byteOffset(groupElement("dy_dphi"));
 
     /**
      * Offset for field:

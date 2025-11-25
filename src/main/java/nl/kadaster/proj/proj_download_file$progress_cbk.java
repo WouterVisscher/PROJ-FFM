@@ -17,9 +17,9 @@ import static java.lang.foreign.MemoryLayout.PathElement.*;
  * int (*progress_cbk)(PJ_CONTEXT *, double, void *)
  * }
  */
-public class proj_download_file$progress_cbk {
+public final class proj_download_file$progress_cbk {
 
-    proj_download_file$progress_cbk() {
+    private proj_download_file$progress_cbk() {
         // Should not be called directly
     }
 
@@ -59,9 +59,11 @@ public class proj_download_file$progress_cbk {
     /**
      * Invoke the upcall stub {@code funcPtr}, with given parameters
      */
-    public static int invoke(MemorySegment funcPtr,MemorySegment _x0, double _x1, MemorySegment _x2) {
+    public static int invoke(MemorySegment funcPtr, MemorySegment _x0, double _x1, MemorySegment _x2) {
         try {
             return (int) DOWN$MH.invokeExact(funcPtr, _x0, _x1, _x2);
+        } catch (Error | RuntimeException ex) {
+            throw ex;
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }

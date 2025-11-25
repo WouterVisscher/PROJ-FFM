@@ -50,7 +50,7 @@ public class PJ_PRIME_MERIDIANS {
         return id$LAYOUT;
     }
 
-    private static final long id$OFFSET = 0;
+    private static final long id$OFFSET = $LAYOUT.byteOffset(groupElement("id"));
 
     /**
      * Offset for field:
@@ -94,7 +94,7 @@ public class PJ_PRIME_MERIDIANS {
         return defn$LAYOUT;
     }
 
-    private static final long defn$OFFSET = 8;
+    private static final long defn$OFFSET = $LAYOUT.byteOffset(groupElement("defn"));
 
     /**
      * Offset for field:

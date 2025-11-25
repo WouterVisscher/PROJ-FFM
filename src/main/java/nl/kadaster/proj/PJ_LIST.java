@@ -52,7 +52,7 @@ public class PJ_LIST {
         return id$LAYOUT;
     }
 
-    private static final long id$OFFSET = 0;
+    private static final long id$OFFSET = $LAYOUT.byteOffset(groupElement("id"));
 
     /**
      * Offset for field:
@@ -89,9 +89,9 @@ public class PJ_LIST {
      * PJ *(*proj)(PJ *)
      * }
      */
-    public static class proj {
+    public final static class proj {
 
-        proj() {
+        private proj() {
             // Should not be called directly
         }
 
@@ -129,9 +129,11 @@ public class PJ_LIST {
         /**
          * Invoke the upcall stub {@code funcPtr}, with given parameters
          */
-        public static MemorySegment invoke(MemorySegment funcPtr,MemorySegment _x0) {
+        public static MemorySegment invoke(MemorySegment funcPtr, MemorySegment _x0) {
             try {
                 return (MemorySegment) DOWN$MH.invokeExact(funcPtr, _x0);
+            } catch (Error | RuntimeException ex) {
+                throw ex;
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }
@@ -150,7 +152,7 @@ public class PJ_LIST {
         return proj$LAYOUT;
     }
 
-    private static final long proj$OFFSET = 8;
+    private static final long proj$OFFSET = $LAYOUT.byteOffset(groupElement("proj"));
 
     /**
      * Offset for field:
@@ -194,7 +196,7 @@ public class PJ_LIST {
         return descr$LAYOUT;
     }
 
-    private static final long descr$OFFSET = 16;
+    private static final long descr$OFFSET = $LAYOUT.byteOffset(groupElement("descr"));
 
     /**
      * Offset for field:

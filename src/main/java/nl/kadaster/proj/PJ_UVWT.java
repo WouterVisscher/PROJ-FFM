@@ -54,7 +54,7 @@ public class PJ_UVWT {
         return u$LAYOUT;
     }
 
-    private static final long u$OFFSET = 0;
+    private static final long u$OFFSET = $LAYOUT.byteOffset(groupElement("u"));
 
     /**
      * Offset for field:
@@ -98,7 +98,7 @@ public class PJ_UVWT {
         return v$LAYOUT;
     }
 
-    private static final long v$OFFSET = 8;
+    private static final long v$OFFSET = $LAYOUT.byteOffset(groupElement("v"));
 
     /**
      * Offset for field:
@@ -142,7 +142,7 @@ public class PJ_UVWT {
         return w$LAYOUT;
     }
 
-    private static final long w$OFFSET = 16;
+    private static final long w$OFFSET = $LAYOUT.byteOffset(groupElement("w"));
 
     /**
      * Offset for field:
@@ -186,7 +186,7 @@ public class PJ_UVWT {
         return t$LAYOUT;
     }
 
-    private static final long t$OFFSET = 24;
+    private static final long t$OFFSET = $LAYOUT.byteOffset(groupElement("t"));
 
     /**
      * Offset for field:

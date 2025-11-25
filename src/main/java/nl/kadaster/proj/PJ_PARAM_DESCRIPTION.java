@@ -61,7 +61,7 @@ public class PJ_PARAM_DESCRIPTION {
         return name$LAYOUT;
     }
 
-    private static final long name$OFFSET = 0;
+    private static final long name$OFFSET = $LAYOUT.byteOffset(groupElement("name"));
 
     /**
      * Offset for field:
@@ -105,7 +105,7 @@ public class PJ_PARAM_DESCRIPTION {
         return auth_name$LAYOUT;
     }
 
-    private static final long auth_name$OFFSET = 8;
+    private static final long auth_name$OFFSET = $LAYOUT.byteOffset(groupElement("auth_name"));
 
     /**
      * Offset for field:
@@ -149,7 +149,7 @@ public class PJ_PARAM_DESCRIPTION {
         return code$LAYOUT;
     }
 
-    private static final long code$OFFSET = 16;
+    private static final long code$OFFSET = $LAYOUT.byteOffset(groupElement("code"));
 
     /**
      * Offset for field:
@@ -193,7 +193,7 @@ public class PJ_PARAM_DESCRIPTION {
         return value$LAYOUT;
     }
 
-    private static final long value$OFFSET = 24;
+    private static final long value$OFFSET = $LAYOUT.byteOffset(groupElement("value"));
 
     /**
      * Offset for field:
@@ -237,7 +237,7 @@ public class PJ_PARAM_DESCRIPTION {
         return unit_name$LAYOUT;
     }
 
-    private static final long unit_name$OFFSET = 32;
+    private static final long unit_name$OFFSET = $LAYOUT.byteOffset(groupElement("unit_name"));
 
     /**
      * Offset for field:
@@ -281,7 +281,7 @@ public class PJ_PARAM_DESCRIPTION {
         return unit_conv_factor$LAYOUT;
     }
 
-    private static final long unit_conv_factor$OFFSET = 40;
+    private static final long unit_conv_factor$OFFSET = $LAYOUT.byteOffset(groupElement("unit_conv_factor"));
 
     /**
      * Offset for field:
@@ -325,7 +325,7 @@ public class PJ_PARAM_DESCRIPTION {
         return unit_type$LAYOUT;
     }
 
-    private static final long unit_type$OFFSET = 48;
+    private static final long unit_type$OFFSET = $LAYOUT.byteOffset(groupElement("unit_type"));
 
     /**
      * Offset for field:

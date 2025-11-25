@@ -17,9 +17,9 @@ import static java.lang.foreign.MemoryLayout.PathElement.*;
  * typedef void (*PJ_LOG_FUNCTION)(void *, int, const char *)
  * }
  */
-public class PJ_LOG_FUNCTION {
+public final class PJ_LOG_FUNCTION {
 
-    PJ_LOG_FUNCTION() {
+    private PJ_LOG_FUNCTION() {
         // Should not be called directly
     }
 
@@ -58,9 +58,11 @@ public class PJ_LOG_FUNCTION {
     /**
      * Invoke the upcall stub {@code funcPtr}, with given parameters
      */
-    public static void invoke(MemorySegment funcPtr,MemorySegment _x0, int _x1, MemorySegment _x2) {
+    public static void invoke(MemorySegment funcPtr, MemorySegment _x0, int _x1, MemorySegment _x2) {
         try {
              DOWN$MH.invokeExact(funcPtr, _x0, _x1, _x2);
+        } catch (Error | RuntimeException ex) {
+            throw ex;
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }

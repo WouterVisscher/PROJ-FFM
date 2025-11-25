@@ -50,7 +50,7 @@ public class PJ_UV {
         return u$LAYOUT;
     }
 
-    private static final long u$OFFSET = 0;
+    private static final long u$OFFSET = $LAYOUT.byteOffset(groupElement("u"));
 
     /**
      * Offset for field:
@@ -94,7 +94,7 @@ public class PJ_UV {
         return v$LAYOUT;
     }
 
-    private static final long v$OFFSET = 8;
+    private static final long v$OFFSET = $LAYOUT.byteOffset(groupElement("v"));
 
     /**
      * Offset for field:

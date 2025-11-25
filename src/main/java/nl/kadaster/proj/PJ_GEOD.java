@@ -52,7 +52,7 @@ public class PJ_GEOD {
         return s$LAYOUT;
     }
 
-    private static final long s$OFFSET = 0;
+    private static final long s$OFFSET = $LAYOUT.byteOffset(groupElement("s"));
 
     /**
      * Offset for field:
@@ -96,7 +96,7 @@ public class PJ_GEOD {
         return a1$LAYOUT;
     }
 
-    private static final long a1$OFFSET = 8;
+    private static final long a1$OFFSET = $LAYOUT.byteOffset(groupElement("a1"));
 
     /**
      * Offset for field:
@@ -140,7 +140,7 @@ public class PJ_GEOD {
         return a2$LAYOUT;
     }
 
-    private static final long a2$OFFSET = 16;
+    private static final long a2$OFFSET = $LAYOUT.byteOffset(groupElement("a2"));
 
     /**
      * Offset for field:

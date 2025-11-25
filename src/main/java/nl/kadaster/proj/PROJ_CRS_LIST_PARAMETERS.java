@@ -67,7 +67,7 @@ public class PROJ_CRS_LIST_PARAMETERS {
         return types$LAYOUT;
     }
 
-    private static final long types$OFFSET = 0;
+    private static final long types$OFFSET = $LAYOUT.byteOffset(groupElement("types"));
 
     /**
      * Offset for field:
@@ -111,7 +111,7 @@ public class PROJ_CRS_LIST_PARAMETERS {
         return typesCount$LAYOUT;
     }
 
-    private static final long typesCount$OFFSET = 8;
+    private static final long typesCount$OFFSET = $LAYOUT.byteOffset(groupElement("typesCount"));
 
     /**
      * Offset for field:
@@ -155,7 +155,7 @@ public class PROJ_CRS_LIST_PARAMETERS {
         return crs_area_of_use_contains_bbox$LAYOUT;
     }
 
-    private static final long crs_area_of_use_contains_bbox$OFFSET = 16;
+    private static final long crs_area_of_use_contains_bbox$OFFSET = $LAYOUT.byteOffset(groupElement("crs_area_of_use_contains_bbox"));
 
     /**
      * Offset for field:
@@ -199,7 +199,7 @@ public class PROJ_CRS_LIST_PARAMETERS {
         return bbox_valid$LAYOUT;
     }
 
-    private static final long bbox_valid$OFFSET = 20;
+    private static final long bbox_valid$OFFSET = $LAYOUT.byteOffset(groupElement("bbox_valid"));
 
     /**
      * Offset for field:
@@ -243,7 +243,7 @@ public class PROJ_CRS_LIST_PARAMETERS {
         return west_lon_degree$LAYOUT;
     }
 
-    private static final long west_lon_degree$OFFSET = 24;
+    private static final long west_lon_degree$OFFSET = $LAYOUT.byteOffset(groupElement("west_lon_degree"));
 
     /**
      * Offset for field:
@@ -287,7 +287,7 @@ public class PROJ_CRS_LIST_PARAMETERS {
         return south_lat_degree$LAYOUT;
     }
 
-    private static final long south_lat_degree$OFFSET = 32;
+    private static final long south_lat_degree$OFFSET = $LAYOUT.byteOffset(groupElement("south_lat_degree"));
 
     /**
      * Offset for field:
@@ -331,7 +331,7 @@ public class PROJ_CRS_LIST_PARAMETERS {
         return east_lon_degree$LAYOUT;
     }
 
-    private static final long east_lon_degree$OFFSET = 40;
+    private static final long east_lon_degree$OFFSET = $LAYOUT.byteOffset(groupElement("east_lon_degree"));
 
     /**
      * Offset for field:
@@ -375,7 +375,7 @@ public class PROJ_CRS_LIST_PARAMETERS {
         return north_lat_degree$LAYOUT;
     }
 
-    private static final long north_lat_degree$OFFSET = 48;
+    private static final long north_lat_degree$OFFSET = $LAYOUT.byteOffset(groupElement("north_lat_degree"));
 
     /**
      * Offset for field:
@@ -419,7 +419,7 @@ public class PROJ_CRS_LIST_PARAMETERS {
         return allow_deprecated$LAYOUT;
     }
 
-    private static final long allow_deprecated$OFFSET = 56;
+    private static final long allow_deprecated$OFFSET = $LAYOUT.byteOffset(groupElement("allow_deprecated"));
 
     /**
      * Offset for field:
@@ -463,7 +463,7 @@ public class PROJ_CRS_LIST_PARAMETERS {
         return celestial_body_name$LAYOUT;
     }
 
-    private static final long celestial_body_name$OFFSET = 64;
+    private static final long celestial_body_name$OFFSET = $LAYOUT.byteOffset(groupElement("celestial_body_name"));
 
     /**
      * Offset for field:

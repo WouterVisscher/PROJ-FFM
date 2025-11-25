@@ -69,7 +69,7 @@ public class PROJ_FILE_API {
         return version$LAYOUT;
     }
 
-    private static final long version$OFFSET = 0;
+    private static final long version$OFFSET = $LAYOUT.byteOffset(groupElement("version"));
 
     /**
      * Offset for field:
@@ -106,9 +106,9 @@ public class PROJ_FILE_API {
      * PROJ_FILE_HANDLE *(*open_cbk)(PJ_CONTEXT *, const char *, PROJ_OPEN_ACCESS, void *)
      * }
      */
-    public static class open_cbk {
+    public final static class open_cbk {
 
-        open_cbk() {
+        private open_cbk() {
             // Should not be called directly
         }
 
@@ -149,9 +149,11 @@ public class PROJ_FILE_API {
         /**
          * Invoke the upcall stub {@code funcPtr}, with given parameters
          */
-        public static MemorySegment invoke(MemorySegment funcPtr,MemorySegment _x0, MemorySegment _x1, int _x2, MemorySegment _x3) {
+        public static MemorySegment invoke(MemorySegment funcPtr, MemorySegment _x0, MemorySegment _x1, int _x2, MemorySegment _x3) {
             try {
                 return (MemorySegment) DOWN$MH.invokeExact(funcPtr, _x0, _x1, _x2, _x3);
+            } catch (Error | RuntimeException ex) {
+                throw ex;
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }
@@ -170,7 +172,7 @@ public class PROJ_FILE_API {
         return open_cbk$LAYOUT;
     }
 
-    private static final long open_cbk$OFFSET = 8;
+    private static final long open_cbk$OFFSET = $LAYOUT.byteOffset(groupElement("open_cbk"));
 
     /**
      * Offset for field:
@@ -207,9 +209,9 @@ public class PROJ_FILE_API {
      * size_t (*read_cbk)(PJ_CONTEXT *, PROJ_FILE_HANDLE *, void *, size_t, void *)
      * }
      */
-    public static class read_cbk {
+    public final static class read_cbk {
 
-        read_cbk() {
+        private read_cbk() {
             // Should not be called directly
         }
 
@@ -251,9 +253,11 @@ public class PROJ_FILE_API {
         /**
          * Invoke the upcall stub {@code funcPtr}, with given parameters
          */
-        public static long invoke(MemorySegment funcPtr,MemorySegment _x0, MemorySegment _x1, MemorySegment _x2, long _x3, MemorySegment _x4) {
+        public static long invoke(MemorySegment funcPtr, MemorySegment _x0, MemorySegment _x1, MemorySegment _x2, long _x3, MemorySegment _x4) {
             try {
                 return (long) DOWN$MH.invokeExact(funcPtr, _x0, _x1, _x2, _x3, _x4);
+            } catch (Error | RuntimeException ex) {
+                throw ex;
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }
@@ -272,7 +276,7 @@ public class PROJ_FILE_API {
         return read_cbk$LAYOUT;
     }
 
-    private static final long read_cbk$OFFSET = 16;
+    private static final long read_cbk$OFFSET = $LAYOUT.byteOffset(groupElement("read_cbk"));
 
     /**
      * Offset for field:
@@ -309,9 +313,9 @@ public class PROJ_FILE_API {
      * size_t (*write_cbk)(PJ_CONTEXT *, PROJ_FILE_HANDLE *, const void *, size_t, void *)
      * }
      */
-    public static class write_cbk {
+    public final static class write_cbk {
 
-        write_cbk() {
+        private write_cbk() {
             // Should not be called directly
         }
 
@@ -353,9 +357,11 @@ public class PROJ_FILE_API {
         /**
          * Invoke the upcall stub {@code funcPtr}, with given parameters
          */
-        public static long invoke(MemorySegment funcPtr,MemorySegment _x0, MemorySegment _x1, MemorySegment _x2, long _x3, MemorySegment _x4) {
+        public static long invoke(MemorySegment funcPtr, MemorySegment _x0, MemorySegment _x1, MemorySegment _x2, long _x3, MemorySegment _x4) {
             try {
                 return (long) DOWN$MH.invokeExact(funcPtr, _x0, _x1, _x2, _x3, _x4);
+            } catch (Error | RuntimeException ex) {
+                throw ex;
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }
@@ -374,7 +380,7 @@ public class PROJ_FILE_API {
         return write_cbk$LAYOUT;
     }
 
-    private static final long write_cbk$OFFSET = 24;
+    private static final long write_cbk$OFFSET = $LAYOUT.byteOffset(groupElement("write_cbk"));
 
     /**
      * Offset for field:
@@ -411,9 +417,9 @@ public class PROJ_FILE_API {
      * int (*seek_cbk)(PJ_CONTEXT *, PROJ_FILE_HANDLE *, long long, int, void *)
      * }
      */
-    public static class seek_cbk {
+    public final static class seek_cbk {
 
-        seek_cbk() {
+        private seek_cbk() {
             // Should not be called directly
         }
 
@@ -455,9 +461,11 @@ public class PROJ_FILE_API {
         /**
          * Invoke the upcall stub {@code funcPtr}, with given parameters
          */
-        public static int invoke(MemorySegment funcPtr,MemorySegment _x0, MemorySegment _x1, long _x2, int _x3, MemorySegment _x4) {
+        public static int invoke(MemorySegment funcPtr, MemorySegment _x0, MemorySegment _x1, long _x2, int _x3, MemorySegment _x4) {
             try {
                 return (int) DOWN$MH.invokeExact(funcPtr, _x0, _x1, _x2, _x3, _x4);
+            } catch (Error | RuntimeException ex) {
+                throw ex;
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }
@@ -476,7 +484,7 @@ public class PROJ_FILE_API {
         return seek_cbk$LAYOUT;
     }
 
-    private static final long seek_cbk$OFFSET = 32;
+    private static final long seek_cbk$OFFSET = $LAYOUT.byteOffset(groupElement("seek_cbk"));
 
     /**
      * Offset for field:
@@ -513,9 +521,9 @@ public class PROJ_FILE_API {
      * unsigned long long (*tell_cbk)(PJ_CONTEXT *, PROJ_FILE_HANDLE *, void *)
      * }
      */
-    public static class tell_cbk {
+    public final static class tell_cbk {
 
-        tell_cbk() {
+        private tell_cbk() {
             // Should not be called directly
         }
 
@@ -555,9 +563,11 @@ public class PROJ_FILE_API {
         /**
          * Invoke the upcall stub {@code funcPtr}, with given parameters
          */
-        public static long invoke(MemorySegment funcPtr,MemorySegment _x0, MemorySegment _x1, MemorySegment _x2) {
+        public static long invoke(MemorySegment funcPtr, MemorySegment _x0, MemorySegment _x1, MemorySegment _x2) {
             try {
                 return (long) DOWN$MH.invokeExact(funcPtr, _x0, _x1, _x2);
+            } catch (Error | RuntimeException ex) {
+                throw ex;
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }
@@ -576,7 +586,7 @@ public class PROJ_FILE_API {
         return tell_cbk$LAYOUT;
     }
 
-    private static final long tell_cbk$OFFSET = 40;
+    private static final long tell_cbk$OFFSET = $LAYOUT.byteOffset(groupElement("tell_cbk"));
 
     /**
      * Offset for field:
@@ -613,9 +623,9 @@ public class PROJ_FILE_API {
      * void (*close_cbk)(PJ_CONTEXT *, PROJ_FILE_HANDLE *, void *)
      * }
      */
-    public static class close_cbk {
+    public final static class close_cbk {
 
-        close_cbk() {
+        private close_cbk() {
             // Should not be called directly
         }
 
@@ -654,9 +664,11 @@ public class PROJ_FILE_API {
         /**
          * Invoke the upcall stub {@code funcPtr}, with given parameters
          */
-        public static void invoke(MemorySegment funcPtr,MemorySegment _x0, MemorySegment _x1, MemorySegment _x2) {
+        public static void invoke(MemorySegment funcPtr, MemorySegment _x0, MemorySegment _x1, MemorySegment _x2) {
             try {
                  DOWN$MH.invokeExact(funcPtr, _x0, _x1, _x2);
+            } catch (Error | RuntimeException ex) {
+                throw ex;
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }
@@ -675,7 +687,7 @@ public class PROJ_FILE_API {
         return close_cbk$LAYOUT;
     }
 
-    private static final long close_cbk$OFFSET = 48;
+    private static final long close_cbk$OFFSET = $LAYOUT.byteOffset(groupElement("close_cbk"));
 
     /**
      * Offset for field:
@@ -712,9 +724,9 @@ public class PROJ_FILE_API {
      * int (*exists_cbk)(PJ_CONTEXT *, const char *, void *)
      * }
      */
-    public static class exists_cbk {
+    public final static class exists_cbk {
 
-        exists_cbk() {
+        private exists_cbk() {
             // Should not be called directly
         }
 
@@ -754,9 +766,11 @@ public class PROJ_FILE_API {
         /**
          * Invoke the upcall stub {@code funcPtr}, with given parameters
          */
-        public static int invoke(MemorySegment funcPtr,MemorySegment _x0, MemorySegment _x1, MemorySegment _x2) {
+        public static int invoke(MemorySegment funcPtr, MemorySegment _x0, MemorySegment _x1, MemorySegment _x2) {
             try {
                 return (int) DOWN$MH.invokeExact(funcPtr, _x0, _x1, _x2);
+            } catch (Error | RuntimeException ex) {
+                throw ex;
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }
@@ -775,7 +789,7 @@ public class PROJ_FILE_API {
         return exists_cbk$LAYOUT;
     }
 
-    private static final long exists_cbk$OFFSET = 56;
+    private static final long exists_cbk$OFFSET = $LAYOUT.byteOffset(groupElement("exists_cbk"));
 
     /**
      * Offset for field:
@@ -812,9 +826,9 @@ public class PROJ_FILE_API {
      * int (*mkdir_cbk)(PJ_CONTEXT *, const char *, void *)
      * }
      */
-    public static class mkdir_cbk {
+    public final static class mkdir_cbk {
 
-        mkdir_cbk() {
+        private mkdir_cbk() {
             // Should not be called directly
         }
 
@@ -854,9 +868,11 @@ public class PROJ_FILE_API {
         /**
          * Invoke the upcall stub {@code funcPtr}, with given parameters
          */
-        public static int invoke(MemorySegment funcPtr,MemorySegment _x0, MemorySegment _x1, MemorySegment _x2) {
+        public static int invoke(MemorySegment funcPtr, MemorySegment _x0, MemorySegment _x1, MemorySegment _x2) {
             try {
                 return (int) DOWN$MH.invokeExact(funcPtr, _x0, _x1, _x2);
+            } catch (Error | RuntimeException ex) {
+                throw ex;
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }
@@ -875,7 +891,7 @@ public class PROJ_FILE_API {
         return mkdir_cbk$LAYOUT;
     }
 
-    private static final long mkdir_cbk$OFFSET = 64;
+    private static final long mkdir_cbk$OFFSET = $LAYOUT.byteOffset(groupElement("mkdir_cbk"));
 
     /**
      * Offset for field:
@@ -912,9 +928,9 @@ public class PROJ_FILE_API {
      * int (*unlink_cbk)(PJ_CONTEXT *, const char *, void *)
      * }
      */
-    public static class unlink_cbk {
+    public final static class unlink_cbk {
 
-        unlink_cbk() {
+        private unlink_cbk() {
             // Should not be called directly
         }
 
@@ -954,9 +970,11 @@ public class PROJ_FILE_API {
         /**
          * Invoke the upcall stub {@code funcPtr}, with given parameters
          */
-        public static int invoke(MemorySegment funcPtr,MemorySegment _x0, MemorySegment _x1, MemorySegment _x2) {
+        public static int invoke(MemorySegment funcPtr, MemorySegment _x0, MemorySegment _x1, MemorySegment _x2) {
             try {
                 return (int) DOWN$MH.invokeExact(funcPtr, _x0, _x1, _x2);
+            } catch (Error | RuntimeException ex) {
+                throw ex;
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }
@@ -975,7 +993,7 @@ public class PROJ_FILE_API {
         return unlink_cbk$LAYOUT;
     }
 
-    private static final long unlink_cbk$OFFSET = 72;
+    private static final long unlink_cbk$OFFSET = $LAYOUT.byteOffset(groupElement("unlink_cbk"));
 
     /**
      * Offset for field:
@@ -1012,9 +1030,9 @@ public class PROJ_FILE_API {
      * int (*rename_cbk)(PJ_CONTEXT *, const char *, const char *, void *)
      * }
      */
-    public static class rename_cbk {
+    public final static class rename_cbk {
 
-        rename_cbk() {
+        private rename_cbk() {
             // Should not be called directly
         }
 
@@ -1055,9 +1073,11 @@ public class PROJ_FILE_API {
         /**
          * Invoke the upcall stub {@code funcPtr}, with given parameters
          */
-        public static int invoke(MemorySegment funcPtr,MemorySegment _x0, MemorySegment _x1, MemorySegment _x2, MemorySegment _x3) {
+        public static int invoke(MemorySegment funcPtr, MemorySegment _x0, MemorySegment _x1, MemorySegment _x2, MemorySegment _x3) {
             try {
                 return (int) DOWN$MH.invokeExact(funcPtr, _x0, _x1, _x2, _x3);
+            } catch (Error | RuntimeException ex) {
+                throw ex;
             } catch (Throwable ex$) {
                 throw new AssertionError("should not reach here", ex$);
             }
@@ -1076,7 +1096,7 @@ public class PROJ_FILE_API {
         return rename_cbk$LAYOUT;
     }
 
-    private static final long rename_cbk$OFFSET = 80;
+    private static final long rename_cbk$OFFSET = $LAYOUT.byteOffset(groupElement("rename_cbk"));
 
     /**
      * Offset for field:

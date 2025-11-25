@@ -72,7 +72,7 @@ public class PJ_COORD {
         return v$LAYOUT;
     }
 
-    private static final long v$OFFSET = 0;
+    private static final long v$OFFSET = $LAYOUT.byteOffset(groupElement("v"));
 
     /**
      * Offset for field:
@@ -149,7 +149,7 @@ public class PJ_COORD {
         return xyzt$LAYOUT;
     }
 
-    private static final long xyzt$OFFSET = 0;
+    private static final long xyzt$OFFSET = $LAYOUT.byteOffset(groupElement("xyzt"));
 
     /**
      * Offset for field:
@@ -193,7 +193,7 @@ public class PJ_COORD {
         return uvwt$LAYOUT;
     }
 
-    private static final long uvwt$OFFSET = 0;
+    private static final long uvwt$OFFSET = $LAYOUT.byteOffset(groupElement("uvwt"));
 
     /**
      * Offset for field:
@@ -237,7 +237,7 @@ public class PJ_COORD {
         return lpzt$LAYOUT;
     }
 
-    private static final long lpzt$OFFSET = 0;
+    private static final long lpzt$OFFSET = $LAYOUT.byteOffset(groupElement("lpzt"));
 
     /**
      * Offset for field:
@@ -281,7 +281,7 @@ public class PJ_COORD {
         return geod$LAYOUT;
     }
 
-    private static final long geod$OFFSET = 0;
+    private static final long geod$OFFSET = $LAYOUT.byteOffset(groupElement("geod"));
 
     /**
      * Offset for field:
@@ -325,7 +325,7 @@ public class PJ_COORD {
         return opk$LAYOUT;
     }
 
-    private static final long opk$OFFSET = 0;
+    private static final long opk$OFFSET = $LAYOUT.byteOffset(groupElement("opk"));
 
     /**
      * Offset for field:
@@ -369,7 +369,7 @@ public class PJ_COORD {
         return enu$LAYOUT;
     }
 
-    private static final long enu$OFFSET = 0;
+    private static final long enu$OFFSET = $LAYOUT.byteOffset(groupElement("enu"));
 
     /**
      * Offset for field:
@@ -413,7 +413,7 @@ public class PJ_COORD {
         return xyz$LAYOUT;
     }
 
-    private static final long xyz$OFFSET = 0;
+    private static final long xyz$OFFSET = $LAYOUT.byteOffset(groupElement("xyz"));
 
     /**
      * Offset for field:
@@ -457,7 +457,7 @@ public class PJ_COORD {
         return uvw$LAYOUT;
     }
 
-    private static final long uvw$OFFSET = 0;
+    private static final long uvw$OFFSET = $LAYOUT.byteOffset(groupElement("uvw"));
 
     /**
      * Offset for field:
@@ -501,7 +501,7 @@ public class PJ_COORD {
         return lpz$LAYOUT;
     }
 
-    private static final long lpz$OFFSET = 0;
+    private static final long lpz$OFFSET = $LAYOUT.byteOffset(groupElement("lpz"));
 
     /**
      * Offset for field:
@@ -545,7 +545,7 @@ public class PJ_COORD {
         return xy$LAYOUT;
     }
 
-    private static final long xy$OFFSET = 0;
+    private static final long xy$OFFSET = $LAYOUT.byteOffset(groupElement("xy"));
 
     /**
      * Offset for field:
@@ -589,7 +589,7 @@ public class PJ_COORD {
         return uv$LAYOUT;
     }
 
-    private static final long uv$OFFSET = 0;
+    private static final long uv$OFFSET = $LAYOUT.byteOffset(groupElement("uv"));
 
     /**
      * Offset for field:
@@ -633,7 +633,7 @@ public class PJ_COORD {
         return lp$LAYOUT;
     }
 
-    private static final long lp$OFFSET = 0;
+    private static final long lp$OFFSET = $LAYOUT.byteOffset(groupElement("lp"));
 
     /**
      * Offset for field:

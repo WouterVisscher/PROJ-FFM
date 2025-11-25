@@ -56,7 +56,7 @@ public class PJ_INIT_INFO {
         return name$LAYOUT;
     }
 
-    private static final long name$OFFSET = 0;
+    private static final long name$OFFSET = $LAYOUT.byteOffset(groupElement("name"));
 
     /**
      * Offset for field:
@@ -133,7 +133,7 @@ public class PJ_INIT_INFO {
         return filename$LAYOUT;
     }
 
-    private static final long filename$OFFSET = 32;
+    private static final long filename$OFFSET = $LAYOUT.byteOffset(groupElement("filename"));
 
     /**
      * Offset for field:
@@ -210,7 +210,7 @@ public class PJ_INIT_INFO {
         return version$LAYOUT;
     }
 
-    private static final long version$OFFSET = 292;
+    private static final long version$OFFSET = $LAYOUT.byteOffset(groupElement("version"));
 
     /**
      * Offset for field:
@@ -287,7 +287,7 @@ public class PJ_INIT_INFO {
         return origin$LAYOUT;
     }
 
-    private static final long origin$OFFSET = 324;
+    private static final long origin$OFFSET = $LAYOUT.byteOffset(groupElement("origin"));
 
     /**
      * Offset for field:
@@ -364,7 +364,7 @@ public class PJ_INIT_INFO {
         return lastupdate$LAYOUT;
     }
 
-    private static final long lastupdate$OFFSET = 356;
+    private static final long lastupdate$OFFSET = $LAYOUT.byteOffset(groupElement("lastupdate"));
 
     /**
      * Offset for field:

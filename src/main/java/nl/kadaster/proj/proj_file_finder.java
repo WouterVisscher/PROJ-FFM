@@ -17,9 +17,9 @@ import static java.lang.foreign.MemoryLayout.PathElement.*;
  * typedef const char *(*proj_file_finder)(PJ_CONTEXT *, const char *, void *)
  * }
  */
-public class proj_file_finder {
+public final class proj_file_finder {
 
-    proj_file_finder() {
+    private proj_file_finder() {
         // Should not be called directly
     }
 
@@ -59,9 +59,11 @@ public class proj_file_finder {
     /**
      * Invoke the upcall stub {@code funcPtr}, with given parameters
      */
-    public static MemorySegment invoke(MemorySegment funcPtr,MemorySegment ctx, MemorySegment _x1, MemorySegment user_data) {
+    public static MemorySegment invoke(MemorySegment funcPtr, MemorySegment ctx, MemorySegment _x1, MemorySegment user_data) {
         try {
             return (MemorySegment) DOWN$MH.invokeExact(funcPtr, ctx, _x1, user_data);
+        } catch (Error | RuntimeException ex) {
+            throw ex;
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }

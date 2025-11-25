@@ -65,7 +65,7 @@ public class PJ_GRID_INFO {
         return gridname$LAYOUT;
     }
 
-    private static final long gridname$OFFSET = 0;
+    private static final long gridname$OFFSET = $LAYOUT.byteOffset(groupElement("gridname"));
 
     /**
      * Offset for field:
@@ -142,7 +142,7 @@ public class PJ_GRID_INFO {
         return filename$LAYOUT;
     }
 
-    private static final long filename$OFFSET = 32;
+    private static final long filename$OFFSET = $LAYOUT.byteOffset(groupElement("filename"));
 
     /**
      * Offset for field:
@@ -219,7 +219,7 @@ public class PJ_GRID_INFO {
         return format$LAYOUT;
     }
 
-    private static final long format$OFFSET = 292;
+    private static final long format$OFFSET = $LAYOUT.byteOffset(groupElement("format"));
 
     /**
      * Offset for field:
@@ -296,7 +296,7 @@ public class PJ_GRID_INFO {
         return lowerleft$LAYOUT;
     }
 
-    private static final long lowerleft$OFFSET = 304;
+    private static final long lowerleft$OFFSET = $LAYOUT.byteOffset(groupElement("lowerleft"));
 
     /**
      * Offset for field:
@@ -340,7 +340,7 @@ public class PJ_GRID_INFO {
         return upperright$LAYOUT;
     }
 
-    private static final long upperright$OFFSET = 320;
+    private static final long upperright$OFFSET = $LAYOUT.byteOffset(groupElement("upperright"));
 
     /**
      * Offset for field:
@@ -384,7 +384,7 @@ public class PJ_GRID_INFO {
         return n_lon$LAYOUT;
     }
 
-    private static final long n_lon$OFFSET = 336;
+    private static final long n_lon$OFFSET = $LAYOUT.byteOffset(groupElement("n_lon"));
 
     /**
      * Offset for field:
@@ -428,7 +428,7 @@ public class PJ_GRID_INFO {
         return n_lat$LAYOUT;
     }
 
-    private static final long n_lat$OFFSET = 340;
+    private static final long n_lat$OFFSET = $LAYOUT.byteOffset(groupElement("n_lat"));
 
     /**
      * Offset for field:
@@ -472,7 +472,7 @@ public class PJ_GRID_INFO {
         return cs_lon$LAYOUT;
     }
 
-    private static final long cs_lon$OFFSET = 344;
+    private static final long cs_lon$OFFSET = $LAYOUT.byteOffset(groupElement("cs_lon"));
 
     /**
      * Offset for field:
@@ -516,7 +516,7 @@ public class PJ_GRID_INFO {
         return cs_lat$LAYOUT;
     }
 
-    private static final long cs_lat$OFFSET = 352;
+    private static final long cs_lat$OFFSET = $LAYOUT.byteOffset(groupElement("cs_lat"));
 
     /**
      * Offset for field:

@@ -54,7 +54,7 @@ public class PJ_UNITS {
         return id$LAYOUT;
     }
 
-    private static final long id$OFFSET = 0;
+    private static final long id$OFFSET = $LAYOUT.byteOffset(groupElement("id"));
 
     /**
      * Offset for field:
@@ -98,7 +98,7 @@ public class PJ_UNITS {
         return to_meter$LAYOUT;
     }
 
-    private static final long to_meter$OFFSET = 8;
+    private static final long to_meter$OFFSET = $LAYOUT.byteOffset(groupElement("to_meter"));
 
     /**
      * Offset for field:
@@ -142,7 +142,7 @@ public class PJ_UNITS {
         return name$LAYOUT;
     }
 
-    private static final long name$OFFSET = 16;
+    private static final long name$OFFSET = $LAYOUT.byteOffset(groupElement("name"));
 
     /**
      * Offset for field:
@@ -186,7 +186,7 @@ public class PJ_UNITS {
         return factor$LAYOUT;
     }
 
-    private static final long factor$OFFSET = 24;
+    private static final long factor$OFFSET = $LAYOUT.byteOffset(groupElement("factor"));
 
     /**
      * Offset for field:

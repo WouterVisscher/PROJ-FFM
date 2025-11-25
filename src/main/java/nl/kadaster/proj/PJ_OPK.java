@@ -52,7 +52,7 @@ public class PJ_OPK {
         return o$LAYOUT;
     }
 
-    private static final long o$OFFSET = 0;
+    private static final long o$OFFSET = $LAYOUT.byteOffset(groupElement("o"));
 
     /**
      * Offset for field:
@@ -96,7 +96,7 @@ public class PJ_OPK {
         return p$LAYOUT;
     }
 
-    private static final long p$OFFSET = 8;
+    private static final long p$OFFSET = $LAYOUT.byteOffset(groupElement("p"));
 
     /**
      * Offset for field:
@@ -140,7 +140,7 @@ public class PJ_OPK {
         return k$LAYOUT;
     }
 
-    private static final long k$OFFSET = 16;
+    private static final long k$OFFSET = $LAYOUT.byteOffset(groupElement("k"));
 
     /**
      * Offset for field:

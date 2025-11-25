@@ -57,7 +57,7 @@ public class PJ_PROJ_INFO {
         return id$LAYOUT;
     }
 
-    private static final long id$OFFSET = 0;
+    private static final long id$OFFSET = $LAYOUT.byteOffset(groupElement("id"));
 
     /**
      * Offset for field:
@@ -101,7 +101,7 @@ public class PJ_PROJ_INFO {
         return description$LAYOUT;
     }
 
-    private static final long description$OFFSET = 8;
+    private static final long description$OFFSET = $LAYOUT.byteOffset(groupElement("description"));
 
     /**
      * Offset for field:
@@ -145,7 +145,7 @@ public class PJ_PROJ_INFO {
         return definition$LAYOUT;
     }
 
-    private static final long definition$OFFSET = 16;
+    private static final long definition$OFFSET = $LAYOUT.byteOffset(groupElement("definition"));
 
     /**
      * Offset for field:
@@ -189,7 +189,7 @@ public class PJ_PROJ_INFO {
         return has_inverse$LAYOUT;
     }
 
-    private static final long has_inverse$OFFSET = 24;
+    private static final long has_inverse$OFFSET = $LAYOUT.byteOffset(groupElement("has_inverse"));
 
     /**
      * Offset for field:
@@ -233,7 +233,7 @@ public class PJ_PROJ_INFO {
         return accuracy$LAYOUT;
     }
 
-    private static final long accuracy$OFFSET = 32;
+    private static final long accuracy$OFFSET = $LAYOUT.byteOffset(groupElement("accuracy"));
 
     /**
      * Offset for field:

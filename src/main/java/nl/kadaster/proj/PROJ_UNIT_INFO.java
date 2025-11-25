@@ -61,7 +61,7 @@ public class PROJ_UNIT_INFO {
         return auth_name$LAYOUT;
     }
 
-    private static final long auth_name$OFFSET = 0;
+    private static final long auth_name$OFFSET = $LAYOUT.byteOffset(groupElement("auth_name"));
 
     /**
      * Offset for field:
@@ -105,7 +105,7 @@ public class PROJ_UNIT_INFO {
         return code$LAYOUT;
     }
 
-    private static final long code$OFFSET = 8;
+    private static final long code$OFFSET = $LAYOUT.byteOffset(groupElement("code"));
 
     /**
      * Offset for field:
@@ -149,7 +149,7 @@ public class PROJ_UNIT_INFO {
         return name$LAYOUT;
     }
 
-    private static final long name$OFFSET = 16;
+    private static final long name$OFFSET = $LAYOUT.byteOffset(groupElement("name"));
 
     /**
      * Offset for field:
@@ -193,7 +193,7 @@ public class PROJ_UNIT_INFO {
         return category$LAYOUT;
     }
 
-    private static final long category$OFFSET = 24;
+    private static final long category$OFFSET = $LAYOUT.byteOffset(groupElement("category"));
 
     /**
      * Offset for field:
@@ -237,7 +237,7 @@ public class PROJ_UNIT_INFO {
         return conv_factor$LAYOUT;
     }
 
-    private static final long conv_factor$OFFSET = 32;
+    private static final long conv_factor$OFFSET = $LAYOUT.byteOffset(groupElement("conv_factor"));
 
     /**
      * Offset for field:
@@ -281,7 +281,7 @@ public class PROJ_UNIT_INFO {
         return proj_short_name$LAYOUT;
     }
 
-    private static final long proj_short_name$OFFSET = 40;
+    private static final long proj_short_name$OFFSET = $LAYOUT.byteOffset(groupElement("proj_short_name"));
 
     /**
      * Offset for field:
@@ -325,7 +325,7 @@ public class PROJ_UNIT_INFO {
         return deprecated$LAYOUT;
     }
 
-    private static final long deprecated$OFFSET = 48;
+    private static final long deprecated$OFFSET = $LAYOUT.byteOffset(groupElement("deprecated"));
 
     /**
      * Offset for field:

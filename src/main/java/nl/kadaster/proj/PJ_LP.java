@@ -50,7 +50,7 @@ public class PJ_LP {
         return lam$LAYOUT;
     }
 
-    private static final long lam$OFFSET = 0;
+    private static final long lam$OFFSET = $LAYOUT.byteOffset(groupElement("lam"));
 
     /**
      * Offset for field:
@@ -94,7 +94,7 @@ public class PJ_LP {
         return phi$LAYOUT;
     }
 
-    private static final long phi$OFFSET = 8;
+    private static final long phi$OFFSET = $LAYOUT.byteOffset(groupElement("phi"));
 
     /**
      * Offset for field:

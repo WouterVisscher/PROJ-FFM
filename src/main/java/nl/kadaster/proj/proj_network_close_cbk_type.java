@@ -17,9 +17,9 @@ import static java.lang.foreign.MemoryLayout.PathElement.*;
  * typedef void (*proj_network_close_cbk_type)(PJ_CONTEXT *, PROJ_NETWORK_HANDLE *, void *)
  * }
  */
-public class proj_network_close_cbk_type {
+public final class proj_network_close_cbk_type {
 
-    proj_network_close_cbk_type() {
+    private proj_network_close_cbk_type() {
         // Should not be called directly
     }
 
@@ -58,9 +58,11 @@ public class proj_network_close_cbk_type {
     /**
      * Invoke the upcall stub {@code funcPtr}, with given parameters
      */
-    public static void invoke(MemorySegment funcPtr,MemorySegment ctx, MemorySegment handle, MemorySegment user_data) {
+    public static void invoke(MemorySegment funcPtr, MemorySegment ctx, MemorySegment handle, MemorySegment user_data) {
         try {
              DOWN$MH.invokeExact(funcPtr, ctx, handle, user_data);
+        } catch (Error | RuntimeException ex) {
+            throw ex;
         } catch (Throwable ex$) {
             throw new AssertionError("should not reach here", ex$);
         }

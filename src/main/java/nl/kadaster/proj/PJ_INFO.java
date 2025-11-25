@@ -63,7 +63,7 @@ public class PJ_INFO {
         return major$LAYOUT;
     }
 
-    private static final long major$OFFSET = 0;
+    private static final long major$OFFSET = $LAYOUT.byteOffset(groupElement("major"));
 
     /**
      * Offset for field:
@@ -107,7 +107,7 @@ public class PJ_INFO {
         return minor$LAYOUT;
     }
 
-    private static final long minor$OFFSET = 4;
+    private static final long minor$OFFSET = $LAYOUT.byteOffset(groupElement("minor"));
 
     /**
      * Offset for field:
@@ -151,7 +151,7 @@ public class PJ_INFO {
         return patch$LAYOUT;
     }
 
-    private static final long patch$OFFSET = 8;
+    private static final long patch$OFFSET = $LAYOUT.byteOffset(groupElement("patch"));
 
     /**
      * Offset for field:
@@ -195,7 +195,7 @@ public class PJ_INFO {
         return release$LAYOUT;
     }
 
-    private static final long release$OFFSET = 16;
+    private static final long release$OFFSET = $LAYOUT.byteOffset(groupElement("release"));
 
     /**
      * Offset for field:
@@ -239,7 +239,7 @@ public class PJ_INFO {
         return version$LAYOUT;
     }
 
-    private static final long version$OFFSET = 24;
+    private static final long version$OFFSET = $LAYOUT.byteOffset(groupElement("version"));
 
     /**
      * Offset for field:
@@ -283,7 +283,7 @@ public class PJ_INFO {
         return searchpath$LAYOUT;
     }
 
-    private static final long searchpath$OFFSET = 32;
+    private static final long searchpath$OFFSET = $LAYOUT.byteOffset(groupElement("searchpath"));
 
     /**
      * Offset for field:
@@ -327,7 +327,7 @@ public class PJ_INFO {
         return paths$LAYOUT;
     }
 
-    private static final long paths$OFFSET = 40;
+    private static final long paths$OFFSET = $LAYOUT.byteOffset(groupElement("paths"));
 
     /**
      * Offset for field:
@@ -371,7 +371,7 @@ public class PJ_INFO {
         return path_count$LAYOUT;
     }
 
-    private static final long path_count$OFFSET = 48;
+    private static final long path_count$OFFSET = $LAYOUT.byteOffset(groupElement("path_count"));
 
     /**
      * Offset for field:

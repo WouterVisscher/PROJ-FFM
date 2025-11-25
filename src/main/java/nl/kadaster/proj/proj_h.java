@@ -12,63 +12,18 @@ import java.util.stream.*;
 import static java.lang.foreign.ValueLayout.*;
 import static java.lang.foreign.MemoryLayout.PathElement.*;
 
-public class proj_h {
+public class proj_h extends proj_h$shared {
 
     proj_h() {
         // Should not be called directly
     }
 
     static final Arena LIBRARY_ARENA = Arena.ofAuto();
-    static final boolean TRACE_DOWNCALLS = Boolean.getBoolean("jextract.trace.downcalls");
-
-    static void traceDowncall(String name, Object... args) {
-         String traceArgs = Arrays.stream(args)
-                       .map(Object::toString)
-                       .collect(Collectors.joining(", "));
-         System.out.printf("%s(%s)\n", name, traceArgs);
-    }
-
-    static MemorySegment findOrThrow(String symbol) {
-        return SYMBOL_LOOKUP.find(symbol)
-            .orElseThrow(() -> new UnsatisfiedLinkError("unresolved symbol: " + symbol));
-    }
-
-    static MethodHandle upcallHandle(Class<?> fi, String name, FunctionDescriptor fdesc) {
-        try {
-            return MethodHandles.lookup().findVirtual(fi, name, fdesc.toMethodType());
-        } catch (ReflectiveOperationException ex) {
-            throw new AssertionError(ex);
-        }
-    }
-
-    static MemoryLayout align(MemoryLayout layout, long align) {
-        return switch (layout) {
-            case PaddingLayout p -> p;
-            case ValueLayout v -> v.withByteAlignment(align);
-            case GroupLayout g -> {
-                MemoryLayout[] alignedMembers = g.memberLayouts().stream()
-                        .map(m -> align(m, align)).toArray(MemoryLayout[]::new);
-                yield g instanceof StructLayout ?
-                        MemoryLayout.structLayout(alignedMembers) : MemoryLayout.unionLayout(alignedMembers);
-            }
-            case SequenceLayout s -> MemoryLayout.sequenceLayout(s.elementCount(), align(s.elementLayout(), align));
-        };
-    }
 
     static final SymbolLookup SYMBOL_LOOKUP = SymbolLookup.libraryLookup(System.mapLibraryName("proj"), LIBRARY_ARENA)
             .or(SymbolLookup.loaderLookup())
             .or(Linker.nativeLinker().defaultLookup());
 
-    public static final ValueLayout.OfBoolean C_BOOL = ValueLayout.JAVA_BOOLEAN;
-    public static final ValueLayout.OfByte C_CHAR = ValueLayout.JAVA_BYTE;
-    public static final ValueLayout.OfShort C_SHORT = ValueLayout.JAVA_SHORT;
-    public static final ValueLayout.OfInt C_INT = ValueLayout.JAVA_INT;
-    public static final ValueLayout.OfLong C_LONG_LONG = ValueLayout.JAVA_LONG;
-    public static final ValueLayout.OfFloat C_FLOAT = ValueLayout.JAVA_FLOAT;
-    public static final ValueLayout.OfDouble C_DOUBLE = ValueLayout.JAVA_DOUBLE;
-    public static final AddressLayout C_POINTER = ValueLayout.ADDRESS
-            .withTargetLayout(MemoryLayout.sequenceLayout(java.lang.Long.MAX_VALUE, JAVA_BYTE));
-    public static final ValueLayout.OfLong C_LONG = ValueLayout.JAVA_LONG;
     private static final int PROJ_VERSION_MAJOR = (int)9L;
     /**
      * {@snippet lang=c :
@@ -87,10 +42,10 @@ public class proj_h {
     public static int PROJ_VERSION_MINOR() {
         return PROJ_VERSION_MINOR;
     }
-    private static final int PROJ_VERSION_PATCH = (int)1L;
+    private static final int PROJ_VERSION_PATCH = (int)2L;
     /**
      * {@snippet lang=c :
-     * #define PROJ_VERSION_PATCH 1
+     * #define PROJ_VERSION_PATCH 2
      * }
      */
     public static int PROJ_VERSION_PATCH() {
@@ -153,8 +108,8 @@ public class proj_h {
 
     private static class pj_release$constants {
         public static final SequenceLayout LAYOUT = MemoryLayout.sequenceLayout(0, proj_h.C_CHAR);
-        public static final MemorySegment SEGMENT = proj_h.findOrThrow("pj_release").reinterpret(LAYOUT.byteSize());
-        public static final VarHandle HANDLE = LAYOUT.varHandle();
+        public static final MemorySegment SEGMENT = SYMBOL_LOOKUP.findOrThrow("pj_release").reinterpret(LAYOUT.byteSize());
+    public static final VarHandle HANDLE = LAYOUT.varHandle();
 
         public static final long[] DIMS = {  };
     }
@@ -266,7 +221,7 @@ public class proj_h {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             proj_h.C_POINTER    );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_create");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_create");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -313,6 +268,8 @@ public class proj_h {
                 traceDowncall("proj_context_create");
             }
             return (MemorySegment)mh$.invokeExact();
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -324,7 +281,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_destroy");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_destroy");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -371,6 +328,8 @@ public class proj_h {
                 traceDowncall("proj_context_destroy", ctx);
             }
             return (MemorySegment)mh$.invokeExact(ctx);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -382,7 +341,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_clone");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_clone");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -429,6 +388,8 @@ public class proj_h {
                 traceDowncall("proj_context_clone", ctx);
             }
             return (MemorySegment)mh$.invokeExact(ctx);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -441,7 +402,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_set_file_finder");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_set_file_finder");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -488,6 +449,8 @@ public class proj_h {
                 traceDowncall("proj_context_set_file_finder", ctx, finder, user_data);
             }
             mh$.invokeExact(ctx, finder, user_data);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -500,7 +463,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_set_search_paths");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_set_search_paths");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -547,6 +510,8 @@ public class proj_h {
                 traceDowncall("proj_context_set_search_paths", ctx, count_paths, paths);
             }
             mh$.invokeExact(ctx, count_paths, paths);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -558,7 +523,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_set_ca_bundle_path");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_set_ca_bundle_path");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -605,6 +570,8 @@ public class proj_h {
                 traceDowncall("proj_context_set_ca_bundle_path", ctx, path);
             }
             mh$.invokeExact(ctx, path);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -616,7 +583,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_use_proj4_init_rules");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_use_proj4_init_rules");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -663,6 +630,8 @@ public class proj_h {
                 traceDowncall("proj_context_use_proj4_init_rules", ctx, enable);
             }
             mh$.invokeExact(ctx, enable);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -675,7 +644,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_get_use_proj4_init_rules");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_get_use_proj4_init_rules");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -722,6 +691,8 @@ public class proj_h {
                 traceDowncall("proj_context_get_use_proj4_init_rules", ctx, from_legacy_code_path);
             }
             return (int)mh$.invokeExact(ctx, from_legacy_code_path);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -762,7 +733,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_set_fileapi");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_set_fileapi");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -809,6 +780,8 @@ public class proj_h {
                 traceDowncall("proj_context_set_fileapi", ctx, fileapi, user_data);
             }
             return (int)mh$.invokeExact(ctx, fileapi, user_data);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -820,7 +793,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_set_sqlite3_vfs_name");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_set_sqlite3_vfs_name");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -867,6 +840,8 @@ public class proj_h {
                 traceDowncall("proj_context_set_sqlite3_vfs_name", ctx, name);
             }
             mh$.invokeExact(ctx, name);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -883,7 +858,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_set_network_callbacks");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_set_network_callbacks");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -930,6 +905,8 @@ public class proj_h {
                 traceDowncall("proj_context_set_network_callbacks", ctx, open_cbk, close_cbk, get_header_value_cbk, read_range_cbk, user_data);
             }
             return (int)mh$.invokeExact(ctx, open_cbk, close_cbk, get_header_value_cbk, read_range_cbk, user_data);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -942,7 +919,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_set_enable_network");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_set_enable_network");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -989,6 +966,8 @@ public class proj_h {
                 traceDowncall("proj_context_set_enable_network", ctx, enabled);
             }
             return (int)mh$.invokeExact(ctx, enabled);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1000,7 +979,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_is_network_enabled");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_is_network_enabled");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1047,6 +1026,8 @@ public class proj_h {
                 traceDowncall("proj_context_is_network_enabled", ctx);
             }
             return (int)mh$.invokeExact(ctx);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1058,7 +1039,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_set_url_endpoint");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_set_url_endpoint");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1105,6 +1086,8 @@ public class proj_h {
                 traceDowncall("proj_context_set_url_endpoint", ctx, url);
             }
             mh$.invokeExact(ctx, url);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1116,7 +1099,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_get_url_endpoint");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_get_url_endpoint");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1163,6 +1146,8 @@ public class proj_h {
                 traceDowncall("proj_context_get_url_endpoint", ctx);
             }
             return (MemorySegment)mh$.invokeExact(ctx);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1175,7 +1160,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_get_user_writable_directory");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_get_user_writable_directory");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1222,6 +1207,8 @@ public class proj_h {
                 traceDowncall("proj_context_get_user_writable_directory", ctx, create);
             }
             return (MemorySegment)mh$.invokeExact(ctx, create);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1234,7 +1221,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_set_user_writable_directory");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_set_user_writable_directory");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1281,6 +1268,8 @@ public class proj_h {
                 traceDowncall("proj_context_set_user_writable_directory", ctx, path, create);
             }
             mh$.invokeExact(ctx, path, create);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1292,7 +1281,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_grid_cache_set_enable");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_grid_cache_set_enable");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1339,6 +1328,8 @@ public class proj_h {
                 traceDowncall("proj_grid_cache_set_enable", ctx, enabled);
             }
             mh$.invokeExact(ctx, enabled);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1350,7 +1341,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_grid_cache_set_filename");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_grid_cache_set_filename");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1397,6 +1388,8 @@ public class proj_h {
                 traceDowncall("proj_grid_cache_set_filename", ctx, fullname);
             }
             mh$.invokeExact(ctx, fullname);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1408,7 +1401,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_grid_cache_set_max_size");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_grid_cache_set_max_size");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1455,6 +1448,8 @@ public class proj_h {
                 traceDowncall("proj_grid_cache_set_max_size", ctx, max_size_MB);
             }
             mh$.invokeExact(ctx, max_size_MB);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1466,7 +1461,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_grid_cache_set_ttl");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_grid_cache_set_ttl");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1513,6 +1508,8 @@ public class proj_h {
                 traceDowncall("proj_grid_cache_set_ttl", ctx, ttl_seconds);
             }
             mh$.invokeExact(ctx, ttl_seconds);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1523,7 +1520,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_grid_cache_clear");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_grid_cache_clear");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1570,6 +1567,8 @@ public class proj_h {
                 traceDowncall("proj_grid_cache_clear", ctx);
             }
             mh$.invokeExact(ctx);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1583,7 +1582,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_is_download_needed");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_is_download_needed");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1630,6 +1629,8 @@ public class proj_h {
                 traceDowncall("proj_is_download_needed", ctx, url_or_filename, ignore_ttl_setting);
             }
             return (int)mh$.invokeExact(ctx, url_or_filename, ignore_ttl_setting);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1645,7 +1646,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_download_file");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_download_file");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1692,6 +1693,8 @@ public class proj_h {
                 traceDowncall("proj_download_file", ctx, url_or_filename, ignore_ttl_setting, progress_cbk, user_data);
             }
             return (int)mh$.invokeExact(ctx, url_or_filename, ignore_ttl_setting, progress_cbk, user_data);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1704,7 +1707,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1751,6 +1754,8 @@ public class proj_h {
                 traceDowncall("proj_create", ctx, definition);
             }
             return (MemorySegment)mh$.invokeExact(ctx, definition);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1764,7 +1769,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_argv");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_argv");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1811,6 +1816,8 @@ public class proj_h {
                 traceDowncall("proj_create_argv", ctx, argc, argv);
             }
             return (MemorySegment)mh$.invokeExact(ctx, argc, argv);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1825,7 +1832,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_crs_to_crs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_crs_to_crs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1872,6 +1879,8 @@ public class proj_h {
                 traceDowncall("proj_create_crs_to_crs", ctx, source_crs, target_crs, area);
             }
             return (MemorySegment)mh$.invokeExact(ctx, source_crs, target_crs, area);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1887,7 +1896,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_crs_to_crs_from_pj");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_crs_to_crs_from_pj");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1934,6 +1943,8 @@ public class proj_h {
                 traceDowncall("proj_create_crs_to_crs_from_pj", ctx, source_crs, target_crs, area, options);
             }
             return (MemorySegment)mh$.invokeExact(ctx, source_crs, target_crs, area, options);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -1946,7 +1957,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_normalize_for_visualization");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_normalize_for_visualization");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -1993,6 +2004,8 @@ public class proj_h {
                 traceDowncall("proj_normalize_for_visualization", ctx, obj);
             }
             return (MemorySegment)mh$.invokeExact(ctx, obj);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2004,7 +2017,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_assign_context");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_assign_context");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2051,6 +2064,8 @@ public class proj_h {
                 traceDowncall("proj_assign_context", pj, ctx);
             }
             mh$.invokeExact(pj, ctx);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2062,7 +2077,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_destroy");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_destroy");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2109,6 +2124,8 @@ public class proj_h {
                 traceDowncall("proj_destroy", P);
             }
             return (MemorySegment)mh$.invokeExact(P);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2118,7 +2135,7 @@ public class proj_h {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             proj_h.C_POINTER    );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_area_create");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_area_create");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2165,6 +2182,8 @@ public class proj_h {
                 traceDowncall("proj_area_create");
             }
             return (MemorySegment)mh$.invokeExact();
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2179,7 +2198,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_area_set_bbox");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_area_set_bbox");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2226,6 +2245,8 @@ public class proj_h {
                 traceDowncall("proj_area_set_bbox", area, west_lon_degree, south_lat_degree, east_lon_degree, north_lat_degree);
             }
             mh$.invokeExact(area, west_lon_degree, south_lat_degree, east_lon_degree, north_lat_degree);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2237,7 +2258,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_area_set_name");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_area_set_name");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2284,6 +2305,8 @@ public class proj_h {
                 traceDowncall("proj_area_set_name", area, name);
             }
             mh$.invokeExact(area, name);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2294,7 +2317,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_area_destroy");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_area_destroy");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2341,6 +2364,8 @@ public class proj_h {
                 traceDowncall("proj_area_destroy", area);
             }
             mh$.invokeExact(area);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2380,7 +2405,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_angular_input");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_angular_input");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2427,6 +2452,8 @@ public class proj_h {
                 traceDowncall("proj_angular_input", P, dir);
             }
             return (int)mh$.invokeExact(P, dir);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2439,7 +2466,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_angular_output");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_angular_output");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2486,6 +2513,8 @@ public class proj_h {
                 traceDowncall("proj_angular_output", P, dir);
             }
             return (int)mh$.invokeExact(P, dir);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2498,7 +2527,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_degree_input");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_degree_input");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2545,6 +2574,8 @@ public class proj_h {
                 traceDowncall("proj_degree_input", P, dir);
             }
             return (int)mh$.invokeExact(P, dir);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2557,7 +2588,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_degree_output");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_degree_output");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2604,6 +2635,8 @@ public class proj_h {
                 traceDowncall("proj_degree_output", P, dir);
             }
             return (int)mh$.invokeExact(P, dir);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2617,7 +2650,7 @@ public class proj_h {
             PJ_COORD.layout()
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_trans");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_trans");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2664,6 +2697,8 @@ public class proj_h {
                 traceDowncall("proj_trans", allocator, P, direction, coord);
             }
             return (MemorySegment)mh$.invokeExact(allocator, P, direction, coord);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2675,7 +2710,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_trans_get_last_used_operation");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_trans_get_last_used_operation");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2722,6 +2757,8 @@ public class proj_h {
                 traceDowncall("proj_trans_get_last_used_operation", P);
             }
             return (MemorySegment)mh$.invokeExact(P);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2736,7 +2773,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_trans_array");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_trans_array");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2783,6 +2820,8 @@ public class proj_h {
                 traceDowncall("proj_trans_array", P, direction, n, coord);
             }
             return (int)mh$.invokeExact(P, direction, n, coord);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2807,7 +2846,7 @@ public class proj_h {
             proj_h.C_LONG
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_trans_generic");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_trans_generic");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2854,6 +2893,8 @@ public class proj_h {
                 traceDowncall("proj_trans_generic", P, direction, x, sx, nx, y, sy, ny, z, sz, nz, t, st, nt);
             }
             return (long)mh$.invokeExact(P, direction, x, sx, nx, y, sy, ny, z, sz, nz, t, st, nt);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2876,7 +2917,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_trans_bounds");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_trans_bounds");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2923,6 +2964,8 @@ public class proj_h {
                 traceDowncall("proj_trans_bounds", context, P, direction, xmin, ymin, xmax, ymax, out_xmin, out_ymin, out_xmax, out_ymax, densify_pts);
             }
             return (int)mh$.invokeExact(context, P, direction, xmin, ymin, xmax, ymax, out_xmin, out_ymin, out_xmax, out_ymax, densify_pts);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -2949,7 +2992,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_trans_bounds_3D");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_trans_bounds_3D");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -2996,6 +3039,8 @@ public class proj_h {
                 traceDowncall("proj_trans_bounds_3D", context, P, direction, xmin, ymin, zmin, xmax, ymax, zmax, out_xmin, out_ymin, out_zmin, out_xmax, out_ymax, out_zmax, densify_pts);
             }
             return (int)mh$.invokeExact(context, P, direction, xmin, ymin, zmin, xmax, ymax, zmax, out_xmin, out_ymin, out_zmin, out_xmax, out_ymax, out_zmax, densify_pts);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -3010,7 +3055,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_coord");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_coord");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -3057,6 +3102,8 @@ public class proj_h {
                 traceDowncall("proj_coord", allocator, x, y, z, t);
             }
             return (MemorySegment)mh$.invokeExact(allocator, x, y, z, t);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -3071,7 +3118,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_roundtrip");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_roundtrip");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -3118,6 +3165,8 @@ public class proj_h {
                 traceDowncall("proj_roundtrip", P, direction, n, coord);
             }
             return (double)mh$.invokeExact(P, direction, n, coord);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -3131,7 +3180,7 @@ public class proj_h {
             PJ_COORD.layout()
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_lp_dist");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_lp_dist");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -3178,6 +3227,8 @@ public class proj_h {
                 traceDowncall("proj_lp_dist", P, a, b);
             }
             return (double)mh$.invokeExact(P, a, b);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -3191,7 +3242,7 @@ public class proj_h {
             PJ_COORD.layout()
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_lpz_dist");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_lpz_dist");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -3238,6 +3289,8 @@ public class proj_h {
                 traceDowncall("proj_lpz_dist", P, a, b);
             }
             return (double)mh$.invokeExact(P, a, b);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -3250,7 +3303,7 @@ public class proj_h {
             PJ_COORD.layout()
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_xy_dist");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_xy_dist");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -3297,6 +3350,8 @@ public class proj_h {
                 traceDowncall("proj_xy_dist", a, b);
             }
             return (double)mh$.invokeExact(a, b);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -3309,7 +3364,7 @@ public class proj_h {
             PJ_COORD.layout()
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_xyz_dist");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_xyz_dist");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -3356,6 +3411,8 @@ public class proj_h {
                 traceDowncall("proj_xyz_dist", a, b);
             }
             return (double)mh$.invokeExact(a, b);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -3369,7 +3426,7 @@ public class proj_h {
             PJ_COORD.layout()
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_geod");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_geod");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -3416,6 +3473,8 @@ public class proj_h {
                 traceDowncall("proj_geod", allocator, P, a, b);
             }
             return (MemorySegment)mh$.invokeExact(allocator, P, a, b);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -3427,7 +3486,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_errno");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_errno");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -3474,6 +3533,8 @@ public class proj_h {
                 traceDowncall("proj_context_errno", ctx);
             }
             return (int)mh$.invokeExact(ctx);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -3485,7 +3546,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_errno");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_errno");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -3532,6 +3593,8 @@ public class proj_h {
                 traceDowncall("proj_errno", P);
             }
             return (int)mh$.invokeExact(P);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -3544,7 +3607,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_errno_set");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_errno_set");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -3591,6 +3654,8 @@ public class proj_h {
                 traceDowncall("proj_errno_set", P, err);
             }
             return (int)mh$.invokeExact(P, err);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -3602,7 +3667,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_errno_reset");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_errno_reset");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -3649,6 +3714,8 @@ public class proj_h {
                 traceDowncall("proj_errno_reset", P);
             }
             return (int)mh$.invokeExact(P);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -3661,7 +3728,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_errno_restore");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_errno_restore");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -3708,6 +3775,8 @@ public class proj_h {
                 traceDowncall("proj_errno_restore", P, err);
             }
             return (int)mh$.invokeExact(P, err);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -3719,7 +3788,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_errno_string");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_errno_string");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -3766,6 +3835,8 @@ public class proj_h {
                 traceDowncall("proj_errno_string", err);
             }
             return (MemorySegment)mh$.invokeExact(err);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -3778,7 +3849,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_errno_string");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_errno_string");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -3825,6 +3896,8 @@ public class proj_h {
                 traceDowncall("proj_context_errno_string", ctx, err);
             }
             return (MemorySegment)mh$.invokeExact(ctx, err);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -3837,7 +3910,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_log_level");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_log_level");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -3884,6 +3957,8 @@ public class proj_h {
                 traceDowncall("proj_log_level", ctx, log_level);
             }
             return (int)mh$.invokeExact(ctx, log_level);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -3896,7 +3971,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_log_func");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_log_func");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -3943,6 +4018,8 @@ public class proj_h {
                 traceDowncall("proj_log_func", ctx, app_data, logf);
             }
             mh$.invokeExact(ctx, app_data, logf);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -3955,7 +4032,7 @@ public class proj_h {
             PJ_COORD.layout()
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_factors");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_factors");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -4002,6 +4079,8 @@ public class proj_h {
                 traceDowncall("proj_factors", allocator, P, lp);
             }
             return (MemorySegment)mh$.invokeExact(allocator, P, lp);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -4011,7 +4090,7 @@ public class proj_h {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             PJ_INFO.layout()    );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_info");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_info");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -4058,6 +4137,8 @@ public class proj_h {
                 traceDowncall("proj_info", allocator);
             }
             return (MemorySegment)mh$.invokeExact(allocator);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -4069,7 +4150,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_pj_info");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_pj_info");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -4116,6 +4197,8 @@ public class proj_h {
                 traceDowncall("proj_pj_info", allocator, P);
             }
             return (MemorySegment)mh$.invokeExact(allocator, P);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -4127,7 +4210,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_grid_info");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_grid_info");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -4174,6 +4257,8 @@ public class proj_h {
                 traceDowncall("proj_grid_info", allocator, gridname);
             }
             return (MemorySegment)mh$.invokeExact(allocator, gridname);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -4185,7 +4270,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_init_info");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_init_info");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -4232,6 +4317,8 @@ public class proj_h {
                 traceDowncall("proj_init_info", allocator, initname);
             }
             return (MemorySegment)mh$.invokeExact(allocator, initname);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -4241,7 +4328,7 @@ public class proj_h {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             proj_h.C_POINTER    );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_list_operations");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_list_operations");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -4288,6 +4375,8 @@ public class proj_h {
                 traceDowncall("proj_list_operations");
             }
             return (MemorySegment)mh$.invokeExact();
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -4297,7 +4386,7 @@ public class proj_h {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             proj_h.C_POINTER    );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_list_ellps");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_list_ellps");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -4344,6 +4433,8 @@ public class proj_h {
                 traceDowncall("proj_list_ellps");
             }
             return (MemorySegment)mh$.invokeExact();
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -4353,7 +4444,7 @@ public class proj_h {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             proj_h.C_POINTER    );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_list_units");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_list_units");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -4400,6 +4491,8 @@ public class proj_h {
                 traceDowncall("proj_list_units");
             }
             return (MemorySegment)mh$.invokeExact();
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -4409,7 +4502,7 @@ public class proj_h {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             proj_h.C_POINTER    );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_list_angular_units");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_list_angular_units");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -4456,6 +4549,8 @@ public class proj_h {
                 traceDowncall("proj_list_angular_units");
             }
             return (MemorySegment)mh$.invokeExact();
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -4465,7 +4560,7 @@ public class proj_h {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             proj_h.C_POINTER    );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_list_prime_meridians");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_list_prime_meridians");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -4512,6 +4607,8 @@ public class proj_h {
                 traceDowncall("proj_list_prime_meridians");
             }
             return (MemorySegment)mh$.invokeExact();
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -4523,7 +4620,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_torad");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_torad");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -4570,6 +4667,8 @@ public class proj_h {
                 traceDowncall("proj_torad", angle_in_degrees);
             }
             return (double)mh$.invokeExact(angle_in_degrees);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -4581,7 +4680,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_todeg");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_todeg");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -4628,6 +4727,8 @@ public class proj_h {
                 traceDowncall("proj_todeg", angle_in_radians);
             }
             return (double)mh$.invokeExact(angle_in_radians);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -4640,7 +4741,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_dmstor");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_dmstor");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -4687,6 +4788,8 @@ public class proj_h {
                 traceDowncall("proj_dmstor", is, rs);
             }
             return (double)mh$.invokeExact(is, rs);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -4701,7 +4804,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_rtodms");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_rtodms");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -4748,6 +4851,8 @@ public class proj_h {
                 traceDowncall("proj_rtodms", s, r, pos, neg);
             }
             return (MemorySegment)mh$.invokeExact(s, r, pos, neg);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -4763,7 +4868,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_rtodms2");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_rtodms2");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -4810,6 +4915,8 @@ public class proj_h {
                 traceDowncall("proj_rtodms2", s, sizeof_s, r, pos, neg);
             }
             return (MemorySegment)mh$.invokeExact(s, sizeof_s, r, pos, neg);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -4818,7 +4925,7 @@ public class proj_h {
     private static class proj_cleanup {
         public static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(    );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_cleanup");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_cleanup");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -4865,6 +4972,8 @@ public class proj_h {
                 traceDowncall("proj_cleanup");
             }
             mh$.invokeExact();
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -5583,7 +5692,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_string_list_destroy");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_string_list_destroy");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -5630,6 +5739,8 @@ public class proj_h {
                 traceDowncall("proj_string_list_destroy", list);
             }
             mh$.invokeExact(list);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -5641,7 +5752,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_set_autoclose_database");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_set_autoclose_database");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -5688,6 +5799,8 @@ public class proj_h {
                 traceDowncall("proj_context_set_autoclose_database", ctx, autoclose);
             }
             mh$.invokeExact(ctx, autoclose);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -5702,7 +5815,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_set_database_path");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_set_database_path");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -5749,6 +5862,8 @@ public class proj_h {
                 traceDowncall("proj_context_set_database_path", ctx, dbPath, auxDbPaths, options);
             }
             return (int)mh$.invokeExact(ctx, dbPath, auxDbPaths, options);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -5760,7 +5875,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_get_database_path");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_get_database_path");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -5807,6 +5922,8 @@ public class proj_h {
                 traceDowncall("proj_context_get_database_path", ctx);
             }
             return (MemorySegment)mh$.invokeExact(ctx);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -5819,7 +5936,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_get_database_metadata");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_get_database_metadata");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -5866,6 +5983,8 @@ public class proj_h {
                 traceDowncall("proj_context_get_database_metadata", ctx, key);
             }
             return (MemorySegment)mh$.invokeExact(ctx, key);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -5878,7 +5997,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_get_database_structure");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_get_database_structure");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -5925,6 +6044,8 @@ public class proj_h {
                 traceDowncall("proj_context_get_database_structure", ctx, options);
             }
             return (MemorySegment)mh$.invokeExact(ctx, options);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -5937,7 +6058,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_context_guess_wkt_dialect");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_context_guess_wkt_dialect");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -5984,6 +6105,8 @@ public class proj_h {
                 traceDowncall("proj_context_guess_wkt_dialect", ctx, wkt);
             }
             return (int)mh$.invokeExact(ctx, wkt);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -5999,7 +6122,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_from_wkt");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_from_wkt");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -6046,6 +6169,8 @@ public class proj_h {
                 traceDowncall("proj_create_from_wkt", ctx, wkt, options, out_warnings, out_grammar_errors);
             }
             return (MemorySegment)mh$.invokeExact(ctx, wkt, options, out_warnings, out_grammar_errors);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -6062,7 +6187,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_from_database");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_from_database");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -6109,6 +6234,8 @@ public class proj_h {
                 traceDowncall("proj_create_from_database", ctx, auth_name, code, category, usePROJAlternativeGridNames, options);
             }
             return (MemorySegment)mh$.invokeExact(ctx, auth_name, code, category, usePROJAlternativeGridNames, options);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -6125,7 +6252,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_uom_get_info_from_database");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_uom_get_info_from_database");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -6172,6 +6299,8 @@ public class proj_h {
                 traceDowncall("proj_uom_get_info_from_database", ctx, auth_name, code, out_name, out_conv_factor, out_category);
             }
             return (int)mh$.invokeExact(ctx, auth_name, code, out_name, out_conv_factor, out_category);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -6190,7 +6319,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_grid_get_info_from_database");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_grid_get_info_from_database");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -6237,6 +6366,8 @@ public class proj_h {
                 traceDowncall("proj_grid_get_info_from_database", ctx, grid_name, out_full_name, out_package_name, out_url, out_direct_download, out_open_license, out_available);
             }
             return (int)mh$.invokeExact(ctx, grid_name, out_full_name, out_package_name, out_url, out_direct_download, out_open_license, out_available);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -6249,7 +6380,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_clone");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_clone");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -6296,6 +6427,8 @@ public class proj_h {
                 traceDowncall("proj_clone", ctx, obj);
             }
             return (MemorySegment)mh$.invokeExact(ctx, obj);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -6314,7 +6447,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_from_name");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_from_name");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -6361,6 +6494,8 @@ public class proj_h {
                 traceDowncall("proj_create_from_name", ctx, auth_name, searchedName, types, typesCount, approximateMatch, limitResultCount, options);
             }
             return (MemorySegment)mh$.invokeExact(ctx, auth_name, searchedName, types, typesCount, approximateMatch, limitResultCount, options);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -6372,7 +6507,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_type");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_type");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -6419,6 +6554,8 @@ public class proj_h {
                 traceDowncall("proj_get_type", obj);
             }
             return (int)mh$.invokeExact(obj);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -6430,7 +6567,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_is_deprecated");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_is_deprecated");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -6477,6 +6614,8 @@ public class proj_h {
                 traceDowncall("proj_is_deprecated", obj);
             }
             return (int)mh$.invokeExact(obj);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -6489,7 +6628,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_non_deprecated");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_non_deprecated");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -6536,6 +6675,8 @@ public class proj_h {
                 traceDowncall("proj_get_non_deprecated", ctx, obj);
             }
             return (MemorySegment)mh$.invokeExact(ctx, obj);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -6549,7 +6690,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_is_equivalent_to");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_is_equivalent_to");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -6596,6 +6737,8 @@ public class proj_h {
                 traceDowncall("proj_is_equivalent_to", obj, other, criterion);
             }
             return (int)mh$.invokeExact(obj, other, criterion);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -6610,7 +6753,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_is_equivalent_to_with_ctx");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_is_equivalent_to_with_ctx");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -6657,6 +6800,8 @@ public class proj_h {
                 traceDowncall("proj_is_equivalent_to_with_ctx", ctx, obj, other, criterion);
             }
             return (int)mh$.invokeExact(ctx, obj, other, criterion);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -6668,7 +6813,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_is_crs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_is_crs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -6715,6 +6860,8 @@ public class proj_h {
                 traceDowncall("proj_is_crs", obj);
             }
             return (int)mh$.invokeExact(obj);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -6726,7 +6873,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_name");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_name");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -6773,6 +6920,8 @@ public class proj_h {
                 traceDowncall("proj_get_name", obj);
             }
             return (MemorySegment)mh$.invokeExact(obj);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -6785,7 +6934,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_id_auth_name");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_id_auth_name");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -6832,6 +6981,8 @@ public class proj_h {
                 traceDowncall("proj_get_id_auth_name", obj, index);
             }
             return (MemorySegment)mh$.invokeExact(obj, index);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -6844,7 +6995,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_id_code");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_id_code");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -6891,6 +7042,8 @@ public class proj_h {
                 traceDowncall("proj_get_id_code", obj, index);
             }
             return (MemorySegment)mh$.invokeExact(obj, index);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -6902,7 +7055,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_remarks");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_remarks");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -6949,6 +7102,8 @@ public class proj_h {
                 traceDowncall("proj_get_remarks", obj);
             }
             return (MemorySegment)mh$.invokeExact(obj);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -6960,7 +7115,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_domain_count");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_domain_count");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7007,6 +7162,8 @@ public class proj_h {
                 traceDowncall("proj_get_domain_count", obj);
             }
             return (int)mh$.invokeExact(obj);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7018,7 +7175,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_scope");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_scope");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7065,6 +7222,8 @@ public class proj_h {
                 traceDowncall("proj_get_scope", obj);
             }
             return (MemorySegment)mh$.invokeExact(obj);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7077,7 +7236,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_scope_ex");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_scope_ex");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7124,6 +7283,8 @@ public class proj_h {
                 traceDowncall("proj_get_scope_ex", obj, domainIdx);
             }
             return (MemorySegment)mh$.invokeExact(obj, domainIdx);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7141,7 +7302,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_area_of_use");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_area_of_use");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7188,6 +7349,8 @@ public class proj_h {
                 traceDowncall("proj_get_area_of_use", ctx, obj, out_west_lon_degree, out_south_lat_degree, out_east_lon_degree, out_north_lat_degree, out_area_name);
             }
             return (int)mh$.invokeExact(ctx, obj, out_west_lon_degree, out_south_lat_degree, out_east_lon_degree, out_north_lat_degree, out_area_name);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7206,7 +7369,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_area_of_use_ex");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_area_of_use_ex");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7253,6 +7416,8 @@ public class proj_h {
                 traceDowncall("proj_get_area_of_use_ex", ctx, obj, domainIdx, out_west_lon_degree, out_south_lat_degree, out_east_lon_degree, out_north_lat_degree, out_area_name);
             }
             return (int)mh$.invokeExact(ctx, obj, domainIdx, out_west_lon_degree, out_south_lat_degree, out_east_lon_degree, out_north_lat_degree, out_area_name);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7267,7 +7432,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_as_wkt");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_as_wkt");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7314,6 +7479,8 @@ public class proj_h {
                 traceDowncall("proj_as_wkt", ctx, obj, type, options);
             }
             return (MemorySegment)mh$.invokeExact(ctx, obj, type, options);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7328,7 +7495,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_as_proj_string");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_as_proj_string");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7375,6 +7542,8 @@ public class proj_h {
                 traceDowncall("proj_as_proj_string", ctx, obj, type, options);
             }
             return (MemorySegment)mh$.invokeExact(ctx, obj, type, options);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7388,7 +7557,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_as_projjson");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_as_projjson");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7435,6 +7604,8 @@ public class proj_h {
                 traceDowncall("proj_as_projjson", ctx, obj, options);
             }
             return (MemorySegment)mh$.invokeExact(ctx, obj, options);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7447,7 +7618,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_source_crs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_source_crs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7494,6 +7665,8 @@ public class proj_h {
                 traceDowncall("proj_get_source_crs", ctx, obj);
             }
             return (MemorySegment)mh$.invokeExact(ctx, obj);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7506,7 +7679,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_target_crs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_target_crs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7553,6 +7726,8 @@ public class proj_h {
                 traceDowncall("proj_get_target_crs", ctx, obj);
             }
             return (MemorySegment)mh$.invokeExact(ctx, obj);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7568,7 +7743,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_identify");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_identify");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7615,6 +7790,8 @@ public class proj_h {
                 traceDowncall("proj_identify", ctx, obj, auth_name, options, out_confidence);
             }
             return (MemorySegment)mh$.invokeExact(ctx, obj, auth_name, options, out_confidence);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7629,7 +7806,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_geoid_models_from_database");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_geoid_models_from_database");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7676,6 +7853,8 @@ public class proj_h {
                 traceDowncall("proj_get_geoid_models_from_database", ctx, auth_name, code, options);
             }
             return (MemorySegment)mh$.invokeExact(ctx, auth_name, code, options);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7686,7 +7865,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_int_list_destroy");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_int_list_destroy");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7733,6 +7912,8 @@ public class proj_h {
                 traceDowncall("proj_int_list_destroy", list);
             }
             mh$.invokeExact(list);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7744,7 +7925,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_authorities_from_database");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_authorities_from_database");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7791,6 +7972,8 @@ public class proj_h {
                 traceDowncall("proj_get_authorities_from_database", ctx);
             }
             return (MemorySegment)mh$.invokeExact(ctx);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7805,7 +7988,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_codes_from_database");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_codes_from_database");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7852,6 +8035,8 @@ public class proj_h {
                 traceDowncall("proj_get_codes_from_database", ctx, auth_name, type, allow_deprecated);
             }
             return (MemorySegment)mh$.invokeExact(ctx, auth_name, type, allow_deprecated);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7865,7 +8050,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_celestial_body_list_from_database");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_celestial_body_list_from_database");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7912,6 +8097,8 @@ public class proj_h {
                 traceDowncall("proj_get_celestial_body_list_from_database", ctx, auth_name, out_result_count);
             }
             return (MemorySegment)mh$.invokeExact(ctx, auth_name, out_result_count);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7922,7 +8109,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_celestial_body_list_destroy");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_celestial_body_list_destroy");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -7969,6 +8156,8 @@ public class proj_h {
                 traceDowncall("proj_celestial_body_list_destroy", list);
             }
             mh$.invokeExact(list);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -7978,7 +8167,7 @@ public class proj_h {
         public static final FunctionDescriptor DESC = FunctionDescriptor.of(
             proj_h.C_POINTER    );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_crs_list_parameters_create");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_crs_list_parameters_create");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8025,6 +8214,8 @@ public class proj_h {
                 traceDowncall("proj_get_crs_list_parameters_create");
             }
             return (MemorySegment)mh$.invokeExact();
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8035,7 +8226,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_crs_list_parameters_destroy");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_crs_list_parameters_destroy");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8082,6 +8273,8 @@ public class proj_h {
                 traceDowncall("proj_get_crs_list_parameters_destroy", params);
             }
             mh$.invokeExact(params);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8096,7 +8289,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_crs_info_list_from_database");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_crs_info_list_from_database");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8143,6 +8336,8 @@ public class proj_h {
                 traceDowncall("proj_get_crs_info_list_from_database", ctx, auth_name, params, out_result_count);
             }
             return (MemorySegment)mh$.invokeExact(ctx, auth_name, params, out_result_count);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8153,7 +8348,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_crs_info_list_destroy");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_crs_info_list_destroy");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8200,6 +8395,8 @@ public class proj_h {
                 traceDowncall("proj_crs_info_list_destroy", list);
             }
             mh$.invokeExact(list);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8215,7 +8412,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_units_from_database");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_units_from_database");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8262,6 +8459,8 @@ public class proj_h {
                 traceDowncall("proj_get_units_from_database", ctx, auth_name, category, allow_deprecated, out_result_count);
             }
             return (MemorySegment)mh$.invokeExact(ctx, auth_name, category, allow_deprecated, out_result_count);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8272,7 +8471,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_unit_list_destroy");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_unit_list_destroy");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8319,6 +8518,8 @@ public class proj_h {
                 traceDowncall("proj_unit_list_destroy", list);
             }
             mh$.invokeExact(list);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8330,7 +8531,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_insert_object_session_create");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_insert_object_session_create");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8377,6 +8578,8 @@ public class proj_h {
                 traceDowncall("proj_insert_object_session_create", ctx);
             }
             return (MemorySegment)mh$.invokeExact(ctx);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8388,7 +8591,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_insert_object_session_destroy");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_insert_object_session_destroy");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8435,6 +8638,8 @@ public class proj_h {
                 traceDowncall("proj_insert_object_session_destroy", ctx, session);
             }
             mh$.invokeExact(ctx, session);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8453,7 +8658,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_insert_statements");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_insert_statements");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8500,6 +8705,8 @@ public class proj_h {
                 traceDowncall("proj_get_insert_statements", ctx, session, object, authority, code, numeric_codes, allowed_authorities, options);
             }
             return (MemorySegment)mh$.invokeExact(ctx, session, object, authority, code, numeric_codes, allowed_authorities, options);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8515,7 +8722,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_suggests_code_for");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_suggests_code_for");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8562,6 +8769,8 @@ public class proj_h {
                 traceDowncall("proj_suggests_code_for", ctx, object, authority, numeric_code, options);
             }
             return (MemorySegment)mh$.invokeExact(ctx, object, authority, numeric_code, options);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8572,7 +8781,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_string_destroy");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_string_destroy");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8619,6 +8828,8 @@ public class proj_h {
                 traceDowncall("proj_string_destroy", str);
             }
             mh$.invokeExact(str);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8631,7 +8842,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_operation_factory_context");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_operation_factory_context");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8678,6 +8889,8 @@ public class proj_h {
                 traceDowncall("proj_create_operation_factory_context", ctx, authority);
             }
             return (MemorySegment)mh$.invokeExact(ctx, authority);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8688,7 +8901,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_operation_factory_context_destroy");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_operation_factory_context_destroy");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8735,6 +8948,8 @@ public class proj_h {
                 traceDowncall("proj_operation_factory_context_destroy", ctx);
             }
             mh$.invokeExact(ctx);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8747,7 +8962,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_operation_factory_context_set_desired_accuracy");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_operation_factory_context_set_desired_accuracy");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8794,6 +9009,8 @@ public class proj_h {
                 traceDowncall("proj_operation_factory_context_set_desired_accuracy", ctx, factory_ctx, accuracy);
             }
             mh$.invokeExact(ctx, factory_ctx, accuracy);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8809,7 +9026,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_operation_factory_context_set_area_of_interest");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_operation_factory_context_set_area_of_interest");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8856,6 +9073,8 @@ public class proj_h {
                 traceDowncall("proj_operation_factory_context_set_area_of_interest", ctx, factory_ctx, west_lon_degree, south_lat_degree, east_lon_degree, north_lat_degree);
             }
             mh$.invokeExact(ctx, factory_ctx, west_lon_degree, south_lat_degree, east_lon_degree, north_lat_degree);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8868,7 +9087,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_operation_factory_context_set_area_of_interest_name");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_operation_factory_context_set_area_of_interest_name");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8915,6 +9134,8 @@ public class proj_h {
                 traceDowncall("proj_operation_factory_context_set_area_of_interest_name", ctx, factory_ctx, area_name);
             }
             mh$.invokeExact(ctx, factory_ctx, area_name);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8927,7 +9148,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_operation_factory_context_set_crs_extent_use");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_operation_factory_context_set_crs_extent_use");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -8974,6 +9195,8 @@ public class proj_h {
                 traceDowncall("proj_operation_factory_context_set_crs_extent_use", ctx, factory_ctx, use);
             }
             mh$.invokeExact(ctx, factory_ctx, use);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -8986,7 +9209,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_operation_factory_context_set_spatial_criterion");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_operation_factory_context_set_spatial_criterion");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9033,6 +9256,8 @@ public class proj_h {
                 traceDowncall("proj_operation_factory_context_set_spatial_criterion", ctx, factory_ctx, criterion);
             }
             mh$.invokeExact(ctx, factory_ctx, criterion);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9045,7 +9270,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_operation_factory_context_set_grid_availability_use");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_operation_factory_context_set_grid_availability_use");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9092,6 +9317,8 @@ public class proj_h {
                 traceDowncall("proj_operation_factory_context_set_grid_availability_use", ctx, factory_ctx, use);
             }
             mh$.invokeExact(ctx, factory_ctx, use);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9104,7 +9331,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_operation_factory_context_set_use_proj_alternative_grid_names");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_operation_factory_context_set_use_proj_alternative_grid_names");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9151,6 +9378,8 @@ public class proj_h {
                 traceDowncall("proj_operation_factory_context_set_use_proj_alternative_grid_names", ctx, factory_ctx, usePROJNames);
             }
             mh$.invokeExact(ctx, factory_ctx, usePROJNames);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9163,7 +9392,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_operation_factory_context_set_allow_use_intermediate_crs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_operation_factory_context_set_allow_use_intermediate_crs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9210,6 +9439,8 @@ public class proj_h {
                 traceDowncall("proj_operation_factory_context_set_allow_use_intermediate_crs", ctx, factory_ctx, use);
             }
             mh$.invokeExact(ctx, factory_ctx, use);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9222,7 +9453,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_operation_factory_context_set_allowed_intermediate_crs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_operation_factory_context_set_allowed_intermediate_crs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9269,6 +9500,8 @@ public class proj_h {
                 traceDowncall("proj_operation_factory_context_set_allowed_intermediate_crs", ctx, factory_ctx, list_of_auth_name_codes);
             }
             mh$.invokeExact(ctx, factory_ctx, list_of_auth_name_codes);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9281,7 +9514,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_operation_factory_context_set_discard_superseded");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_operation_factory_context_set_discard_superseded");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9328,6 +9561,8 @@ public class proj_h {
                 traceDowncall("proj_operation_factory_context_set_discard_superseded", ctx, factory_ctx, discard);
             }
             mh$.invokeExact(ctx, factory_ctx, discard);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9340,7 +9575,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_operation_factory_context_set_allow_ballpark_transformations");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_operation_factory_context_set_allow_ballpark_transformations");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9387,6 +9622,8 @@ public class proj_h {
                 traceDowncall("proj_operation_factory_context_set_allow_ballpark_transformations", ctx, factory_ctx, allow);
             }
             mh$.invokeExact(ctx, factory_ctx, allow);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9401,7 +9638,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_operations");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_operations");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9448,6 +9685,8 @@ public class proj_h {
                 traceDowncall("proj_create_operations", ctx, source_crs, target_crs, operationContext);
             }
             return (MemorySegment)mh$.invokeExact(ctx, source_crs, target_crs, operationContext);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9459,7 +9698,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_list_get_count");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_list_get_count");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9506,6 +9745,8 @@ public class proj_h {
                 traceDowncall("proj_list_get_count", result);
             }
             return (int)mh$.invokeExact(result);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9519,7 +9760,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_list_get");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_list_get");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9566,6 +9807,8 @@ public class proj_h {
                 traceDowncall("proj_list_get", ctx, result, index);
             }
             return (MemorySegment)mh$.invokeExact(ctx, result, index);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9576,7 +9819,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_list_destroy");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_list_destroy");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9623,6 +9866,8 @@ public class proj_h {
                 traceDowncall("proj_list_destroy", result);
             }
             mh$.invokeExact(result);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9637,7 +9882,7 @@ public class proj_h {
             PJ_COORD.layout()
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_suggested_operation");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_suggested_operation");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9684,6 +9929,8 @@ public class proj_h {
                 traceDowncall("proj_get_suggested_operation", ctx, operations, direction, coord);
             }
             return (int)mh$.invokeExact(ctx, operations, direction, coord);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9696,7 +9943,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_crs_is_derived");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_crs_is_derived");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9743,6 +9990,8 @@ public class proj_h {
                 traceDowncall("proj_crs_is_derived", ctx, crs);
             }
             return (int)mh$.invokeExact(ctx, crs);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9755,7 +10004,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_crs_get_geodetic_crs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_crs_get_geodetic_crs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9802,6 +10051,8 @@ public class proj_h {
                 traceDowncall("proj_crs_get_geodetic_crs", ctx, crs);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9814,7 +10065,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_crs_get_horizontal_datum");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_crs_get_horizontal_datum");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9861,6 +10112,8 @@ public class proj_h {
                 traceDowncall("proj_crs_get_horizontal_datum", ctx, crs);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9874,7 +10127,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_crs_get_sub_crs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_crs_get_sub_crs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9921,6 +10174,8 @@ public class proj_h {
                 traceDowncall("proj_crs_get_sub_crs", ctx, crs, index);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs, index);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9933,7 +10188,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_crs_get_datum");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_crs_get_datum");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -9980,6 +10235,8 @@ public class proj_h {
                 traceDowncall("proj_crs_get_datum", ctx, crs);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -9992,7 +10249,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_crs_get_datum_ensemble");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_crs_get_datum_ensemble");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10039,6 +10296,8 @@ public class proj_h {
                 traceDowncall("proj_crs_get_datum_ensemble", ctx, crs);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10051,7 +10310,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_crs_get_datum_forced");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_crs_get_datum_forced");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10098,6 +10357,8 @@ public class proj_h {
                 traceDowncall("proj_crs_get_datum_forced", ctx, crs);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10110,7 +10371,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_crs_has_point_motion_operation");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_crs_has_point_motion_operation");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10157,6 +10418,8 @@ public class proj_h {
                 traceDowncall("proj_crs_has_point_motion_operation", ctx, crs);
             }
             return (int)mh$.invokeExact(ctx, crs);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10169,7 +10432,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_datum_ensemble_get_member_count");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_datum_ensemble_get_member_count");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10216,6 +10479,8 @@ public class proj_h {
                 traceDowncall("proj_datum_ensemble_get_member_count", ctx, datum_ensemble);
             }
             return (int)mh$.invokeExact(ctx, datum_ensemble);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10228,7 +10493,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_datum_ensemble_get_accuracy");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_datum_ensemble_get_accuracy");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10275,6 +10540,8 @@ public class proj_h {
                 traceDowncall("proj_datum_ensemble_get_accuracy", ctx, datum_ensemble);
             }
             return (double)mh$.invokeExact(ctx, datum_ensemble);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10288,7 +10555,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_datum_ensemble_get_member");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_datum_ensemble_get_member");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10335,6 +10602,8 @@ public class proj_h {
                 traceDowncall("proj_datum_ensemble_get_member", ctx, datum_ensemble, member_index);
             }
             return (MemorySegment)mh$.invokeExact(ctx, datum_ensemble, member_index);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10347,7 +10616,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_dynamic_datum_get_frame_reference_epoch");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_dynamic_datum_get_frame_reference_epoch");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10394,6 +10663,8 @@ public class proj_h {
                 traceDowncall("proj_dynamic_datum_get_frame_reference_epoch", ctx, datum);
             }
             return (double)mh$.invokeExact(ctx, datum);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10406,7 +10677,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_crs_get_coordinate_system");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_crs_get_coordinate_system");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10453,6 +10724,8 @@ public class proj_h {
                 traceDowncall("proj_crs_get_coordinate_system", ctx, crs);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10465,7 +10738,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_cs_get_type");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_cs_get_type");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10512,6 +10785,8 @@ public class proj_h {
                 traceDowncall("proj_cs_get_type", ctx, cs);
             }
             return (int)mh$.invokeExact(ctx, cs);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10524,7 +10799,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_cs_get_axis_count");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_cs_get_axis_count");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10571,6 +10846,8 @@ public class proj_h {
                 traceDowncall("proj_cs_get_axis_count", ctx, cs);
             }
             return (int)mh$.invokeExact(ctx, cs);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10591,7 +10868,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_cs_get_axis_info");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_cs_get_axis_info");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10638,6 +10915,8 @@ public class proj_h {
                 traceDowncall("proj_cs_get_axis_info", ctx, cs, index, out_name, out_abbrev, out_direction, out_unit_conv_factor, out_unit_name, out_unit_auth_name, out_unit_code);
             }
             return (int)mh$.invokeExact(ctx, cs, index, out_name, out_abbrev, out_direction, out_unit_conv_factor, out_unit_name, out_unit_auth_name, out_unit_code);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10650,7 +10929,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_ellipsoid");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_ellipsoid");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10697,6 +10976,8 @@ public class proj_h {
                 traceDowncall("proj_get_ellipsoid", ctx, obj);
             }
             return (MemorySegment)mh$.invokeExact(ctx, obj);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10713,7 +10994,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_ellipsoid_get_parameters");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_ellipsoid_get_parameters");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10760,6 +11041,8 @@ public class proj_h {
                 traceDowncall("proj_ellipsoid_get_parameters", ctx, ellipsoid, out_semi_major_metre, out_semi_minor_metre, out_is_semi_minor_computed, out_inv_flattening);
             }
             return (int)mh$.invokeExact(ctx, ellipsoid, out_semi_major_metre, out_semi_minor_metre, out_is_semi_minor_computed, out_inv_flattening);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10772,7 +11055,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_celestial_body_name");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_celestial_body_name");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10819,6 +11102,8 @@ public class proj_h {
                 traceDowncall("proj_get_celestial_body_name", ctx, obj);
             }
             return (MemorySegment)mh$.invokeExact(ctx, obj);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10831,7 +11116,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_get_prime_meridian");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_get_prime_meridian");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10878,6 +11163,8 @@ public class proj_h {
                 traceDowncall("proj_get_prime_meridian", ctx, obj);
             }
             return (MemorySegment)mh$.invokeExact(ctx, obj);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10893,7 +11180,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_prime_meridian_get_parameters");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_prime_meridian_get_parameters");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10940,6 +11227,8 @@ public class proj_h {
                 traceDowncall("proj_prime_meridian_get_parameters", ctx, prime_meridian, out_longitude, out_unit_conv_factor, out_unit_name);
             }
             return (int)mh$.invokeExact(ctx, prime_meridian, out_longitude, out_unit_conv_factor, out_unit_name);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -10952,7 +11241,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_crs_get_coordoperation");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_crs_get_coordoperation");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -10999,6 +11288,8 @@ public class proj_h {
                 traceDowncall("proj_crs_get_coordoperation", ctx, crs);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -11014,7 +11305,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_coordoperation_get_method_info");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_coordoperation_get_method_info");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -11061,6 +11352,8 @@ public class proj_h {
                 traceDowncall("proj_coordoperation_get_method_info", ctx, coordoperation, out_method_name, out_method_auth_name, out_method_code);
             }
             return (int)mh$.invokeExact(ctx, coordoperation, out_method_name, out_method_auth_name, out_method_code);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -11073,7 +11366,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_coordoperation_is_instantiable");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_coordoperation_is_instantiable");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -11120,6 +11413,8 @@ public class proj_h {
                 traceDowncall("proj_coordoperation_is_instantiable", ctx, coordoperation);
             }
             return (int)mh$.invokeExact(ctx, coordoperation);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -11132,7 +11427,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_coordoperation_has_ballpark_transformation");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_coordoperation_has_ballpark_transformation");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -11179,6 +11474,8 @@ public class proj_h {
                 traceDowncall("proj_coordoperation_has_ballpark_transformation", ctx, coordoperation);
             }
             return (int)mh$.invokeExact(ctx, coordoperation);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -11191,7 +11488,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_coordoperation_requires_per_coordinate_input_time");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_coordoperation_requires_per_coordinate_input_time");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -11238,6 +11535,8 @@ public class proj_h {
                 traceDowncall("proj_coordoperation_requires_per_coordinate_input_time", ctx, coordoperation);
             }
             return (int)mh$.invokeExact(ctx, coordoperation);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -11250,7 +11549,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_coordoperation_get_param_count");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_coordoperation_get_param_count");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -11297,6 +11596,8 @@ public class proj_h {
                 traceDowncall("proj_coordoperation_get_param_count", ctx, coordoperation);
             }
             return (int)mh$.invokeExact(ctx, coordoperation);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -11310,7 +11611,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_coordoperation_get_param_index");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_coordoperation_get_param_index");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -11357,6 +11658,8 @@ public class proj_h {
                 traceDowncall("proj_coordoperation_get_param_index", ctx, coordoperation, name);
             }
             return (int)mh$.invokeExact(ctx, coordoperation, name);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -11380,7 +11683,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_coordoperation_get_param");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_coordoperation_get_param");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -11427,6 +11730,8 @@ public class proj_h {
                 traceDowncall("proj_coordoperation_get_param", ctx, coordoperation, index, out_name, out_auth_name, out_code, out_value, out_value_string, out_unit_conv_factor, out_unit_name, out_unit_auth_name, out_unit_code, out_unit_category);
             }
             return (int)mh$.invokeExact(ctx, coordoperation, index, out_name, out_auth_name, out_code, out_value, out_value_string, out_unit_conv_factor, out_unit_name, out_unit_auth_name, out_unit_code, out_unit_category);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -11439,7 +11744,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_coordoperation_get_grid_used_count");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_coordoperation_get_grid_used_count");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -11486,6 +11791,8 @@ public class proj_h {
                 traceDowncall("proj_coordoperation_get_grid_used_count", ctx, coordoperation);
             }
             return (int)mh$.invokeExact(ctx, coordoperation);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -11506,7 +11813,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_coordoperation_get_grid_used");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_coordoperation_get_grid_used");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -11553,6 +11860,8 @@ public class proj_h {
                 traceDowncall("proj_coordoperation_get_grid_used", ctx, coordoperation, index, out_short_name, out_full_name, out_package_name, out_url, out_direct_download, out_open_license, out_available);
             }
             return (int)mh$.invokeExact(ctx, coordoperation, index, out_short_name, out_full_name, out_package_name, out_url, out_direct_download, out_open_license, out_available);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -11565,7 +11874,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_coordoperation_get_accuracy");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_coordoperation_get_accuracy");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -11612,6 +11921,8 @@ public class proj_h {
                 traceDowncall("proj_coordoperation_get_accuracy", ctx, obj);
             }
             return (double)mh$.invokeExact(ctx, obj);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -11627,7 +11938,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_coordoperation_get_towgs84_values");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_coordoperation_get_towgs84_values");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -11674,6 +11985,8 @@ public class proj_h {
                 traceDowncall("proj_coordoperation_get_towgs84_values", ctx, coordoperation, out_values, value_count, emit_error_if_incompatible);
             }
             return (int)mh$.invokeExact(ctx, coordoperation, out_values, value_count, emit_error_if_incompatible);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -11686,7 +11999,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_coordoperation_create_inverse");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_coordoperation_create_inverse");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -11733,6 +12046,8 @@ public class proj_h {
                 traceDowncall("proj_coordoperation_create_inverse", ctx, obj);
             }
             return (MemorySegment)mh$.invokeExact(ctx, obj);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -11745,7 +12060,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_concatoperation_get_step_count");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_concatoperation_get_step_count");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -11792,6 +12107,8 @@ public class proj_h {
                 traceDowncall("proj_concatoperation_get_step_count", ctx, concatoperation);
             }
             return (int)mh$.invokeExact(ctx, concatoperation);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -11805,7 +12122,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_concatoperation_get_step");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_concatoperation_get_step");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -11852,6 +12169,8 @@ public class proj_h {
                 traceDowncall("proj_concatoperation_get_step", ctx, concatoperation, i_step);
             }
             return (MemorySegment)mh$.invokeExact(ctx, concatoperation, i_step);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -11865,7 +12184,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_coordinate_metadata_create");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_coordinate_metadata_create");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -11912,6 +12231,8 @@ public class proj_h {
                 traceDowncall("proj_coordinate_metadata_create", ctx, crs, epoch);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs, epoch);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -11924,7 +12245,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_coordinate_metadata_get_epoch");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_coordinate_metadata_get_epoch");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -11971,6 +12292,8 @@ public class proj_h {
                 traceDowncall("proj_coordinate_metadata_get_epoch", ctx, obj);
             }
             return (double)mh$.invokeExact(ctx, obj);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -12111,7 +12434,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_cs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_cs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -12158,6 +12481,8 @@ public class proj_h {
                 traceDowncall("proj_create_cs", ctx, type, axis_count, axis);
             }
             return (MemorySegment)mh$.invokeExact(ctx, type, axis_count, axis);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -12172,7 +12497,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_cartesian_2D_cs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_cartesian_2D_cs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -12219,6 +12544,8 @@ public class proj_h {
                 traceDowncall("proj_create_cartesian_2D_cs", ctx, type, unit_name, unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, type, unit_name, unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -12233,7 +12560,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_ellipsoidal_2D_cs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_ellipsoidal_2D_cs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -12280,6 +12607,8 @@ public class proj_h {
                 traceDowncall("proj_create_ellipsoidal_2D_cs", ctx, type, unit_name, unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, type, unit_name, unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -12296,7 +12625,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_ellipsoidal_3D_cs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_ellipsoidal_3D_cs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -12343,6 +12672,8 @@ public class proj_h {
                 traceDowncall("proj_create_ellipsoidal_3D_cs", ctx, type, horizontal_angular_unit_name, horizontal_angular_unit_conv_factor, vertical_linear_unit_name, vertical_linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, type, horizontal_angular_unit_name, horizontal_angular_unit_conv_factor, vertical_linear_unit_name, vertical_linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -12358,7 +12689,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_query_geodetic_crs_from_datum");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_query_geodetic_crs_from_datum");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -12405,6 +12736,8 @@ public class proj_h {
                 traceDowncall("proj_query_geodetic_crs_from_datum", ctx, crs_auth_name, datum_auth_name, datum_code, crs_type);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs_auth_name, datum_auth_name, datum_code, crs_type);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -12426,7 +12759,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_geographic_crs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_geographic_crs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -12473,6 +12806,8 @@ public class proj_h {
                 traceDowncall("proj_create_geographic_crs", ctx, crs_name, datum_name, ellps_name, semi_major_metre, inv_flattening, prime_meridian_name, prime_meridian_offset, pm_angular_units, pm_units_conv, ellipsoidal_cs);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs_name, datum_name, ellps_name, semi_major_metre, inv_flattening, prime_meridian_name, prime_meridian_offset, pm_angular_units, pm_units_conv, ellipsoidal_cs);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -12487,7 +12822,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_geographic_crs_from_datum");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_geographic_crs_from_datum");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -12534,6 +12869,8 @@ public class proj_h {
                 traceDowncall("proj_create_geographic_crs_from_datum", ctx, crs_name, datum_or_datum_ensemble, ellipsoidal_cs);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs_name, datum_or_datum_ensemble, ellipsoidal_cs);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -12556,7 +12893,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_geocentric_crs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_geocentric_crs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -12603,6 +12940,8 @@ public class proj_h {
                 traceDowncall("proj_create_geocentric_crs", ctx, crs_name, datum_name, ellps_name, semi_major_metre, inv_flattening, prime_meridian_name, prime_meridian_offset, angular_units, angular_units_conv, linear_units, linear_units_conv);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs_name, datum_name, ellps_name, semi_major_metre, inv_flattening, prime_meridian_name, prime_meridian_offset, angular_units, angular_units_conv, linear_units, linear_units_conv);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -12618,7 +12957,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_geocentric_crs_from_datum");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_geocentric_crs_from_datum");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -12665,6 +13004,8 @@ public class proj_h {
                 traceDowncall("proj_create_geocentric_crs_from_datum", ctx, crs_name, datum_or_datum_ensemble, linear_units, linear_units_conv);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs_name, datum_or_datum_ensemble, linear_units, linear_units_conv);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -12680,7 +13021,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_derived_geographic_crs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_derived_geographic_crs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -12727,6 +13068,8 @@ public class proj_h {
                 traceDowncall("proj_create_derived_geographic_crs", ctx, crs_name, base_geographic_crs, conversion, ellipsoidal_cs);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs_name, base_geographic_crs, conversion, ellipsoidal_cs);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -12739,7 +13082,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_is_derived_crs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_is_derived_crs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -12786,6 +13129,8 @@ public class proj_h {
                 traceDowncall("proj_is_derived_crs", ctx, crs);
             }
             return (int)mh$.invokeExact(ctx, crs);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -12799,7 +13144,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_alter_name");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_alter_name");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -12846,6 +13191,8 @@ public class proj_h {
                 traceDowncall("proj_alter_name", ctx, obj, name);
             }
             return (MemorySegment)mh$.invokeExact(ctx, obj, name);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -12860,7 +13207,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_alter_id");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_alter_id");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -12907,6 +13254,8 @@ public class proj_h {
                 traceDowncall("proj_alter_id", ctx, obj, auth_name, code);
             }
             return (MemorySegment)mh$.invokeExact(ctx, obj, auth_name, code);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -12920,7 +13269,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_crs_alter_geodetic_crs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_crs_alter_geodetic_crs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -12967,6 +13316,8 @@ public class proj_h {
                 traceDowncall("proj_crs_alter_geodetic_crs", ctx, obj, new_geod_crs);
             }
             return (MemorySegment)mh$.invokeExact(ctx, obj, new_geod_crs);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -12983,7 +13334,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_crs_alter_cs_angular_unit");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_crs_alter_cs_angular_unit");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -13030,6 +13381,8 @@ public class proj_h {
                 traceDowncall("proj_crs_alter_cs_angular_unit", ctx, obj, angular_units, angular_units_conv, unit_auth_name, unit_code);
             }
             return (MemorySegment)mh$.invokeExact(ctx, obj, angular_units, angular_units_conv, unit_auth_name, unit_code);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -13046,7 +13399,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_crs_alter_cs_linear_unit");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_crs_alter_cs_linear_unit");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -13093,6 +13446,8 @@ public class proj_h {
                 traceDowncall("proj_crs_alter_cs_linear_unit", ctx, obj, linear_units, linear_units_conv, unit_auth_name, unit_code);
             }
             return (MemorySegment)mh$.invokeExact(ctx, obj, linear_units, linear_units_conv, unit_auth_name, unit_code);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -13110,7 +13465,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_crs_alter_parameters_linear_unit");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_crs_alter_parameters_linear_unit");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -13157,6 +13512,8 @@ public class proj_h {
                 traceDowncall("proj_crs_alter_parameters_linear_unit", ctx, obj, linear_units, linear_units_conv, unit_auth_name, unit_code, convert_to_new_unit);
             }
             return (MemorySegment)mh$.invokeExact(ctx, obj, linear_units, linear_units_conv, unit_auth_name, unit_code, convert_to_new_unit);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -13170,7 +13527,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_crs_promote_to_3D");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_crs_promote_to_3D");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -13217,6 +13574,8 @@ public class proj_h {
                 traceDowncall("proj_crs_promote_to_3D", ctx, crs_3D_name, crs_2D);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs_3D_name, crs_2D);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -13231,7 +13590,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_crs_create_projected_3D_crs_from_2D");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_crs_create_projected_3D_crs_from_2D");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -13278,6 +13637,8 @@ public class proj_h {
                 traceDowncall("proj_crs_create_projected_3D_crs_from_2D", ctx, crs_name, projected_2D_crs, geog_3D_crs);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs_name, projected_2D_crs, geog_3D_crs);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -13291,7 +13652,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_crs_demote_to_2D");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_crs_demote_to_2D");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -13338,6 +13699,8 @@ public class proj_h {
                 traceDowncall("proj_crs_demote_to_2D", ctx, crs_2D_name, crs_3D);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs_2D_name, crs_3D);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -13350,7 +13713,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_engineering_crs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_engineering_crs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -13397,6 +13760,8 @@ public class proj_h {
                 traceDowncall("proj_create_engineering_crs", ctx, crsName);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crsName);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -13412,7 +13777,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_vertical_crs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_vertical_crs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -13459,6 +13824,8 @@ public class proj_h {
                 traceDowncall("proj_create_vertical_crs", ctx, crs_name, datum_name, linear_units, linear_units_conv);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs_name, datum_name, linear_units, linear_units_conv);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -13481,7 +13848,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_vertical_crs_ex");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_vertical_crs_ex");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -13528,6 +13895,8 @@ public class proj_h {
                 traceDowncall("proj_create_vertical_crs_ex", ctx, crs_name, datum_name, datum_auth_name, datum_code, linear_units, linear_units_conv, geoid_model_name, geoid_model_auth_name, geoid_model_code, geoid_geog_crs, options);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs_name, datum_name, datum_auth_name, datum_code, linear_units, linear_units_conv, geoid_model_name, geoid_model_auth_name, geoid_model_code, geoid_geog_crs, options);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -13542,7 +13911,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_compound_crs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_compound_crs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -13589,6 +13958,8 @@ public class proj_h {
                 traceDowncall("proj_create_compound_crs", ctx, crs_name, horiz_crs, vert_crs);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs_name, horiz_crs, vert_crs);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -13608,7 +13979,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -13655,6 +14026,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion", ctx, name, auth_name, code, method_name, method_auth_name, method_code, param_count, params);
             }
             return (MemorySegment)mh$.invokeExact(ctx, name, auth_name, code, method_name, method_auth_name, method_code, param_count, params);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -13678,7 +14051,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_transformation");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_transformation");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -13725,6 +14098,8 @@ public class proj_h {
                 traceDowncall("proj_create_transformation", ctx, name, auth_name, code, source_crs, target_crs, interpolation_crs, method_name, method_auth_name, method_code, param_count, params, accuracy);
             }
             return (MemorySegment)mh$.invokeExact(ctx, name, auth_name, code, source_crs, target_crs, interpolation_crs, method_name, method_auth_name, method_code, param_count, params, accuracy);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -13739,7 +14114,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_convert_conversion_to_other_method");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_convert_conversion_to_other_method");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -13786,6 +14161,8 @@ public class proj_h {
                 traceDowncall("proj_convert_conversion_to_other_method", ctx, conversion, new_method_epsg_code, new_method_name);
             }
             return (MemorySegment)mh$.invokeExact(ctx, conversion, new_method_epsg_code, new_method_name);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -13801,7 +14178,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_projected_crs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_projected_crs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -13848,6 +14225,8 @@ public class proj_h {
                 traceDowncall("proj_create_projected_crs", ctx, crs_name, geodetic_crs, conversion, coordinate_system);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs_name, geodetic_crs, conversion, coordinate_system);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -13862,7 +14241,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_crs_create_bound_crs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_crs_create_bound_crs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -13909,6 +14288,8 @@ public class proj_h {
                 traceDowncall("proj_crs_create_bound_crs", ctx, base_crs, hub_crs, transformation);
             }
             return (MemorySegment)mh$.invokeExact(ctx, base_crs, hub_crs, transformation);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -13922,7 +14303,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_crs_create_bound_crs_to_WGS84");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_crs_create_bound_crs_to_WGS84");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -13969,6 +14350,8 @@ public class proj_h {
                 traceDowncall("proj_crs_create_bound_crs_to_WGS84", ctx, crs, options);
             }
             return (MemorySegment)mh$.invokeExact(ctx, crs, options);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -13983,7 +14366,7 @@ public class proj_h {
             proj_h.C_POINTER
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_crs_create_bound_vertical_crs");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_crs_create_bound_vertical_crs");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -14030,6 +14413,8 @@ public class proj_h {
                 traceDowncall("proj_crs_create_bound_vertical_crs", ctx, vert_crs, hub_geographic_3D_crs, grid_name);
             }
             return (MemorySegment)mh$.invokeExact(ctx, vert_crs, hub_geographic_3D_crs, grid_name);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -14043,7 +14428,7 @@ public class proj_h {
             proj_h.C_INT
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_utm");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_utm");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -14090,6 +14475,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_utm", ctx, zone, north);
             }
             return (MemorySegment)mh$.invokeExact(ctx, zone, north);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -14110,7 +14497,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_transverse_mercator");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_transverse_mercator");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -14157,6 +14544,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_transverse_mercator", ctx, center_lat, center_long, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_lat, center_long, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -14177,7 +14566,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_gauss_schreiber_transverse_mercator");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_gauss_schreiber_transverse_mercator");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -14224,6 +14613,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_gauss_schreiber_transverse_mercator", ctx, center_lat, center_long, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_lat, center_long, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -14244,7 +14635,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_transverse_mercator_south_oriented");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_transverse_mercator_south_oriented");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -14291,6 +14682,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_transverse_mercator_south_oriented", ctx, center_lat, center_long, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_lat, center_long, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -14312,7 +14705,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_two_point_equidistant");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_two_point_equidistant");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -14359,6 +14752,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_two_point_equidistant", ctx, latitude_first_point, longitude_first_point, latitude_second_point, longitude_secon_point, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_first_point, longitude_first_point, latitude_second_point, longitude_secon_point, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -14378,7 +14773,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_tunisia_mapping_grid");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_tunisia_mapping_grid");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -14425,6 +14820,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_tunisia_mapping_grid", ctx, center_lat, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_lat, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -14444,7 +14841,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_tunisia_mining_grid");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_tunisia_mining_grid");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -14491,6 +14888,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_tunisia_mining_grid", ctx, center_lat, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_lat, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -14512,7 +14911,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_albers_equal_area");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_albers_equal_area");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -14559,6 +14958,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_albers_equal_area", ctx, latitude_false_origin, longitude_false_origin, latitude_first_parallel, latitude_second_parallel, easting_false_origin, northing_false_origin, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_false_origin, longitude_false_origin, latitude_first_parallel, latitude_second_parallel, easting_false_origin, northing_false_origin, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -14579,7 +14980,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_lambert_conic_conformal_1sp");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_lambert_conic_conformal_1sp");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -14626,6 +15027,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_lambert_conic_conformal_1sp", ctx, center_lat, center_long, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_lat, center_long, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -14647,7 +15050,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_lambert_conic_conformal_1sp_variant_b");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_lambert_conic_conformal_1sp_variant_b");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -14694,6 +15097,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_lambert_conic_conformal_1sp_variant_b", ctx, latitude_nat_origin, scale, latitude_false_origin, longitude_false_origin, easting_false_origin, northing_false_origin, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_nat_origin, scale, latitude_false_origin, longitude_false_origin, easting_false_origin, northing_false_origin, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -14715,7 +15120,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_lambert_conic_conformal_2sp");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_lambert_conic_conformal_2sp");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -14762,6 +15167,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_lambert_conic_conformal_2sp", ctx, latitude_false_origin, longitude_false_origin, latitude_first_parallel, latitude_second_parallel, easting_false_origin, northing_false_origin, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_false_origin, longitude_false_origin, latitude_first_parallel, latitude_second_parallel, easting_false_origin, northing_false_origin, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -14784,7 +15191,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_lambert_conic_conformal_2sp_michigan");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_lambert_conic_conformal_2sp_michigan");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -14831,6 +15238,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_lambert_conic_conformal_2sp_michigan", ctx, latitude_false_origin, longitude_false_origin, latitude_first_parallel, latitude_second_parallel, easting_false_origin, northing_false_origin, ellipsoid_scaling_factor, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_false_origin, longitude_false_origin, latitude_first_parallel, latitude_second_parallel, easting_false_origin, northing_false_origin, ellipsoid_scaling_factor, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -14852,7 +15261,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_lambert_conic_conformal_2sp_belgium");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_lambert_conic_conformal_2sp_belgium");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -14899,6 +15308,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_lambert_conic_conformal_2sp_belgium", ctx, latitude_false_origin, longitude_false_origin, latitude_first_parallel, latitude_second_parallel, easting_false_origin, northing_false_origin, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_false_origin, longitude_false_origin, latitude_first_parallel, latitude_second_parallel, easting_false_origin, northing_false_origin, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -14918,7 +15329,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_azimuthal_equidistant");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_azimuthal_equidistant");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -14965,6 +15376,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_azimuthal_equidistant", ctx, latitude_nat_origin, longitude_nat_origin, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_nat_origin, longitude_nat_origin, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -14984,7 +15397,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_guam_projection");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_guam_projection");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -15031,6 +15444,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_guam_projection", ctx, latitude_nat_origin, longitude_nat_origin, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_nat_origin, longitude_nat_origin, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -15050,7 +15465,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_bonne");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_bonne");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -15097,6 +15512,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_bonne", ctx, latitude_nat_origin, longitude_nat_origin, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_nat_origin, longitude_nat_origin, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -15116,7 +15533,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_lambert_cylindrical_equal_area_spherical");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_lambert_cylindrical_equal_area_spherical");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -15163,6 +15580,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_lambert_cylindrical_equal_area_spherical", ctx, latitude_first_parallel, longitude_nat_origin, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_first_parallel, longitude_nat_origin, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -15182,7 +15601,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_lambert_cylindrical_equal_area");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_lambert_cylindrical_equal_area");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -15229,6 +15648,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_lambert_cylindrical_equal_area", ctx, latitude_first_parallel, longitude_nat_origin, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_first_parallel, longitude_nat_origin, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -15248,7 +15669,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_cassini_soldner");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_cassini_soldner");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -15295,6 +15716,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_cassini_soldner", ctx, center_lat, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_lat, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -15316,7 +15739,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_equidistant_conic");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_equidistant_conic");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -15363,6 +15786,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_equidistant_conic", ctx, center_lat, center_long, latitude_first_parallel, latitude_second_parallel, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_lat, center_long, latitude_first_parallel, latitude_second_parallel, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -15381,7 +15806,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_eckert_i");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_eckert_i");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -15428,6 +15853,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_eckert_i", ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -15446,7 +15873,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_eckert_ii");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_eckert_ii");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -15493,6 +15920,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_eckert_ii", ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -15511,7 +15940,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_eckert_iii");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_eckert_iii");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -15558,6 +15987,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_eckert_iii", ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -15576,7 +16007,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_eckert_iv");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_eckert_iv");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -15623,6 +16054,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_eckert_iv", ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -15641,7 +16074,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_eckert_v");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_eckert_v");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -15688,6 +16121,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_eckert_v", ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -15706,7 +16141,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_eckert_vi");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_eckert_vi");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -15753,6 +16188,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_eckert_vi", ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -15772,7 +16209,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_equidistant_cylindrical");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_equidistant_cylindrical");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -15819,6 +16256,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_equidistant_cylindrical", ctx, latitude_first_parallel, longitude_nat_origin, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_first_parallel, longitude_nat_origin, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -15838,7 +16277,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_equidistant_cylindrical_spherical");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_equidistant_cylindrical_spherical");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -15885,6 +16324,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_equidistant_cylindrical_spherical", ctx, latitude_first_parallel, longitude_nat_origin, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_first_parallel, longitude_nat_origin, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -15903,7 +16344,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_gall");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_gall");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -15950,6 +16391,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_gall", ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -15968,7 +16411,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_goode_homolosine");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_goode_homolosine");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -16015,6 +16458,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_goode_homolosine", ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -16033,7 +16478,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_interrupted_goode_homolosine");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_interrupted_goode_homolosine");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -16080,6 +16525,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_interrupted_goode_homolosine", ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -16099,7 +16546,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_geostationary_satellite_sweep_x");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_geostationary_satellite_sweep_x");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -16146,6 +16593,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_geostationary_satellite_sweep_x", ctx, center_long, height, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, height, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -16165,7 +16614,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_geostationary_satellite_sweep_y");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_geostationary_satellite_sweep_y");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -16212,6 +16661,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_geostationary_satellite_sweep_y", ctx, center_long, height, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, height, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -16231,7 +16682,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_gnomonic");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_gnomonic");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -16278,6 +16729,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_gnomonic", ctx, center_lat, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_lat, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -16300,7 +16753,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_hotine_oblique_mercator_variant_a");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_hotine_oblique_mercator_variant_a");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -16347,6 +16800,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_hotine_oblique_mercator_variant_a", ctx, latitude_projection_centre, longitude_projection_centre, azimuth_initial_line, angle_from_rectified_to_skrew_grid, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_projection_centre, longitude_projection_centre, azimuth_initial_line, angle_from_rectified_to_skrew_grid, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -16369,7 +16824,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_hotine_oblique_mercator_variant_b");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_hotine_oblique_mercator_variant_b");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -16416,6 +16871,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_hotine_oblique_mercator_variant_b", ctx, latitude_projection_centre, longitude_projection_centre, azimuth_initial_line, angle_from_rectified_to_skrew_grid, scale, easting_projection_centre, northing_projection_centre, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_projection_centre, longitude_projection_centre, azimuth_initial_line, angle_from_rectified_to_skrew_grid, scale, easting_projection_centre, northing_projection_centre, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -16439,7 +16896,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_hotine_oblique_mercator_two_point_natural_origin");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_hotine_oblique_mercator_two_point_natural_origin");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -16486,6 +16943,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_hotine_oblique_mercator_two_point_natural_origin", ctx, latitude_projection_centre, latitude_point1, longitude_point1, latitude_point2, longitude_point2, scale, easting_projection_centre, northing_projection_centre, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_projection_centre, latitude_point1, longitude_point1, latitude_point2, longitude_point2, scale, easting_projection_centre, northing_projection_centre, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -16507,7 +16966,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_laborde_oblique_mercator");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_laborde_oblique_mercator");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -16554,6 +17013,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_laborde_oblique_mercator", ctx, latitude_projection_centre, longitude_projection_centre, azimuth_initial_line, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_projection_centre, longitude_projection_centre, azimuth_initial_line, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -16574,7 +17035,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_international_map_world_polyconic");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_international_map_world_polyconic");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -16621,6 +17082,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_international_map_world_polyconic", ctx, center_long, latitude_first_parallel, latitude_second_parallel, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, latitude_first_parallel, latitude_second_parallel, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -16643,7 +17106,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_krovak_north_oriented");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_krovak_north_oriented");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -16690,6 +17153,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_krovak_north_oriented", ctx, latitude_projection_centre, longitude_of_origin, colatitude_cone_axis, latitude_pseudo_standard_parallel, scale_factor_pseudo_standard_parallel, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_projection_centre, longitude_of_origin, colatitude_cone_axis, latitude_pseudo_standard_parallel, scale_factor_pseudo_standard_parallel, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -16712,7 +17177,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_krovak");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_krovak");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -16759,6 +17224,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_krovak", ctx, latitude_projection_centre, longitude_of_origin, colatitude_cone_axis, latitude_pseudo_standard_parallel, scale_factor_pseudo_standard_parallel, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_projection_centre, longitude_of_origin, colatitude_cone_axis, latitude_pseudo_standard_parallel, scale_factor_pseudo_standard_parallel, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -16778,7 +17245,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_lambert_azimuthal_equal_area");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_lambert_azimuthal_equal_area");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -16825,6 +17292,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_lambert_azimuthal_equal_area", ctx, latitude_nat_origin, longitude_nat_origin, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_nat_origin, longitude_nat_origin, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -16843,7 +17312,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_miller_cylindrical");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_miller_cylindrical");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -16890,6 +17359,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_miller_cylindrical", ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -16910,7 +17381,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_mercator_variant_a");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_mercator_variant_a");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -16957,6 +17428,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_mercator_variant_a", ctx, center_lat, center_long, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_lat, center_long, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -16976,7 +17449,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_mercator_variant_b");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_mercator_variant_b");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -17023,6 +17496,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_mercator_variant_b", ctx, latitude_first_parallel, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_first_parallel, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -17042,7 +17517,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_popular_visualisation_pseudo_mercator");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_popular_visualisation_pseudo_mercator");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -17089,6 +17564,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_popular_visualisation_pseudo_mercator", ctx, center_lat, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_lat, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -17107,7 +17584,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_mollweide");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_mollweide");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -17154,6 +17631,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_mollweide", ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -17173,7 +17652,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_new_zealand_mapping_grid");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_new_zealand_mapping_grid");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -17220,6 +17699,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_new_zealand_mapping_grid", ctx, center_lat, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_lat, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -17240,7 +17721,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_oblique_stereographic");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_oblique_stereographic");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -17287,6 +17768,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_oblique_stereographic", ctx, center_lat, center_long, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_lat, center_long, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -17306,7 +17789,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_orthographic");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_orthographic");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -17353,6 +17836,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_orthographic", ctx, center_lat, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_lat, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -17374,7 +17859,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_local_orthographic");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_local_orthographic");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -17421,6 +17906,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_local_orthographic", ctx, center_lat, center_long, azimuth, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_lat, center_long, azimuth, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -17440,7 +17927,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_american_polyconic");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_american_polyconic");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -17487,6 +17974,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_american_polyconic", ctx, center_lat, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_lat, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -17507,7 +17996,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_polar_stereographic_variant_a");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_polar_stereographic_variant_a");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -17554,6 +18043,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_polar_stereographic_variant_a", ctx, center_lat, center_long, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_lat, center_long, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -17573,7 +18064,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_polar_stereographic_variant_b");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_polar_stereographic_variant_b");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -17620,6 +18111,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_polar_stereographic_variant_b", ctx, latitude_standard_parallel, longitude_of_origin, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_standard_parallel, longitude_of_origin, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -17638,7 +18131,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_robinson");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_robinson");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -17685,6 +18178,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_robinson", ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -17703,7 +18198,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_sinusoidal");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_sinusoidal");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -17750,6 +18245,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_sinusoidal", ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -17770,7 +18267,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_stereographic");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_stereographic");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -17817,6 +18314,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_stereographic", ctx, center_lat, center_long, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_lat, center_long, scale, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -17835,7 +18334,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_van_der_grinten");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_van_der_grinten");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -17882,6 +18381,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_van_der_grinten", ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -17900,7 +18401,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_wagner_i");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_wagner_i");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -17947,6 +18448,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_wagner_i", ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -17965,7 +18468,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_wagner_ii");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_wagner_ii");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -18012,6 +18515,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_wagner_ii", ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -18031,7 +18536,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_wagner_iii");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_wagner_iii");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -18078,6 +18583,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_wagner_iii", ctx, latitude_true_scale, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, latitude_true_scale, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -18096,7 +18603,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_wagner_iv");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_wagner_iv");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -18143,6 +18650,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_wagner_iv", ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -18161,7 +18670,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_wagner_v");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_wagner_v");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -18208,6 +18717,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_wagner_v", ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -18226,7 +18737,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_wagner_vi");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_wagner_vi");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -18273,6 +18784,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_wagner_vi", ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -18291,7 +18804,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_wagner_vii");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_wagner_vii");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -18338,6 +18851,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_wagner_vii", ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -18357,7 +18872,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_quadrilateralized_spherical_cube");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_quadrilateralized_spherical_cube");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -18404,6 +18919,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_quadrilateralized_spherical_cube", ctx, center_lat, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_lat, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -18423,7 +18940,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_spherical_cross_track_height");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_spherical_cross_track_height");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -18470,6 +18987,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_spherical_cross_track_height", ctx, peg_point_lat, peg_point_long, peg_point_heading, peg_point_height, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, peg_point_lat, peg_point_long, peg_point_heading, peg_point_height, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -18488,7 +19007,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_equal_earth");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_equal_earth");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -18535,6 +19054,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_equal_earth", ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, center_long, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -18556,7 +19077,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_vertical_perspective");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_vertical_perspective");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -18603,6 +19124,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_vertical_perspective", ctx, topo_origin_lat, topo_origin_long, topo_origin_height, view_point_height, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, topo_origin_lat, topo_origin_long, topo_origin_height, view_point_height, false_easting, false_northing, ang_unit_name, ang_unit_conv_factor, linear_unit_name, linear_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -18619,7 +19142,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_pole_rotation_grib_convention");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_pole_rotation_grib_convention");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -18666,6 +19189,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_pole_rotation_grib_convention", ctx, south_pole_lat_in_unrotated_crs, south_pole_long_in_unrotated_crs, axis_rotation, ang_unit_name, ang_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, south_pole_lat_in_unrotated_crs, south_pole_long_in_unrotated_crs, axis_rotation, ang_unit_name, ang_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -18682,7 +19207,7 @@ public class proj_h {
             proj_h.C_DOUBLE
         );
 
-        public static final MemorySegment ADDR = proj_h.findOrThrow("proj_create_conversion_pole_rotation_netcdf_cf_convention");
+        public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("proj_create_conversion_pole_rotation_netcdf_cf_convention");
 
         public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
     }
@@ -18729,6 +19254,8 @@ public class proj_h {
                 traceDowncall("proj_create_conversion_pole_rotation_netcdf_cf_convention", ctx, grid_north_pole_latitude, grid_north_pole_longitude, north_pole_grid_longitude, ang_unit_name, ang_unit_conv_factor);
             }
             return (MemorySegment)mh$.invokeExact(ctx, grid_north_pole_latitude, grid_north_pole_longitude, north_pole_grid_longitude, ang_unit_name, ang_unit_conv_factor);
+        } catch (Error | RuntimeException ex) {
+           throw ex;
         } catch (Throwable ex$) {
            throw new AssertionError("should not reach here", ex$);
         }
@@ -18742,10 +19269,10 @@ public class proj_h {
     public static MemorySegment NULL() {
         return NULL;
     }
-    private static final int PROJ_VERSION_NUMBER = (int)90601L;
+    private static final int PROJ_VERSION_NUMBER = (int)90602L;
     /**
      * {@snippet lang=c :
-     * #define PROJ_VERSION_NUMBER 90601
+     * #define PROJ_VERSION_NUMBER 90602
      * }
      */
     public static int PROJ_VERSION_NUMBER() {

@@ -54,7 +54,7 @@ public class PJ_XYZT {
         return x$LAYOUT;
     }
 
-    private static final long x$OFFSET = 0;
+    private static final long x$OFFSET = $LAYOUT.byteOffset(groupElement("x"));
 
     /**
      * Offset for field:
@@ -98,7 +98,7 @@ public class PJ_XYZT {
         return y$LAYOUT;
     }
 
-    private static final long y$OFFSET = 8;
+    private static final long y$OFFSET = $LAYOUT.byteOffset(groupElement("y"));
 
     /**
      * Offset for field:
@@ -142,7 +142,7 @@ public class PJ_XYZT {
         return z$LAYOUT;
     }
 
-    private static final long z$OFFSET = 16;
+    private static final long z$OFFSET = $LAYOUT.byteOffset(groupElement("z"));
 
     /**
      * Offset for field:
@@ -186,7 +186,7 @@ public class PJ_XYZT {
         return t$LAYOUT;
     }
 
-    private static final long t$OFFSET = 24;
+    private static final long t$OFFSET = $LAYOUT.byteOffset(groupElement("t"));
 
     /**
      * Offset for field:
