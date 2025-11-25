@@ -81,3 +81,5 @@ cs2cs -f %9f EPSG:7415 EPSG:9067 <<< "127767.3607   839078.2344  38.7032"
 
 You can run the sql from https://github.com/GeodetischeInfrastructuur/transformations/tree/main/sql/default against your proj.db.
 Creating a NSGI authority and additional transformation path to correctly execute a RDNAPTRANS transformation.
+
+Results can be found in the `/target/test-output/` dir and uploaded to [NSGI validatieservice](https://www.nsgi.nl/coordinatenstelsels-en-transformaties/tools/validatieservice).
