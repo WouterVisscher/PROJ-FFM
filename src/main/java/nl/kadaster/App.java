@@ -9,7 +9,7 @@ public class App
 {
     public static void main( String[] args )
     {
-        Transformer transformer = new Transformer("EPSG:28992", "EPSG:9067");
+        Transformer transformer = new Transformer("EPSG:7415", "EPSG:7931");
         Coordinate coord1 = transformer.transformLPZ( 155029, 463001, 0);   // Amersfoort O.L. Vrouwetoren Amersfoort
         Coordinate coord2 = transformer.transformLPZ( 	194632, 469365, 0);  // Apeldoorn AGRS de Grift
 

@@ -56,6 +56,7 @@ tar -xvf openjdk-25-*
 ```sh
 mvn clean install
 java -jar target/transformer-1.0-SNAPSHOT.jar
+mvn test -Dtest=TransformerFileTest
 ```
 
 ## compare
@@ -70,6 +71,13 @@ usage: projinfo ...
 ```
 
 ```sh
-cs2cs -f %9f EPSG:28992 EPSG:9067 <<< "155000 463000"
+cs2cs -f %9f EPSG:7415 EPSG:9067 <<< "127767.3607   839078.2344  38.7032"
 52.155173        5.387204  0.000000
 ```
+
+## setting up proj
+
+> :warning: https://github.com/GeodetischeInfrastructuur/transformations
+
+You can run the sql from https://github.com/GeodetischeInfrastructuur/transformations/tree/main/sql/default against your proj.db.
+Creating a NSGI authority and additional transformation path to correctly execute a RDNAPTRANS transformation.
